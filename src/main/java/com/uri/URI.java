@@ -6,77 +6,90 @@ import java.util.regex.Pattern;
 
 public class URI {
     
-    private final static String  RegExScheme = "^([a-zA-z]+[a-zA-z+-.]*):";
-    private final static String  RegExAuthority = "";
+    private final static String Unreserved     = "a-zA-Z0-9-._~";
+    private final static String SubDelimiters  = "!$&'()*+,;=";
+    private final static String PercentEncoded = "%[0-9A-F]{2}"; 
+    
+    private final static String RegExScheme = "^([a-zA-z]+[a-zA-z+-.]*):";
+    
+    private final static String RegExUserInfo = "(?:((?:["+Unreserved+"!$&'()*+,;=:]|"+PercentEncoded+")*)@)?";
+    private final static String RegExHost     = "((?:["+Unreserved+SubDelimiters+"]|"+PercentEncoded+")*)";
+    
+    // ((?:[a-z0-9-._~!$&'()*+,;=]|%[0-9A-F]{2})*)
+    private final static String RegExAuthority = 
+            "//" +
+            RegExUserInfo +
+            RegExHost +
+            "";
     
     private final static Pattern SchemePattern;
     private final static Pattern AuthorityPattern;
     
-    private final static char[] RESERVED;
-    private final static char[] GEN_DELIMITERS = { ':', '/', '?', '#', '[', ']', '@' };
-    private final static char[] SUB_DELIMITERS = { '!', '$', '&', '\'', '(', ')', '*', '+', ',', ';', '=' };
+    private String  scheme    = "";
+    private String  userinfo  = "";
+    private String  hostname  = "";
+    private boolean isAuthory = true;
     
-    private String scheme    = "";
-    
-    // authority component
-    private String authority = "";
-    private String host      = "";
-    private String user      = "";
-    private String password  = "";
-    private int port         = -1;
-    
-    private String path      = "";
-    private String fragment  = "";
+    private StringBuilder remaining = new StringBuilder();
     
     static {
-        RESERVED = new char[GEN_DELIMITERS.length + SUB_DELIMITERS.length];
-        int i = 0;
-        for (char c : GEN_DELIMITERS) {
-            RESERVED[i++] = c;
-        }
-        for (char c : SUB_DELIMITERS) {
-            RESERVED[i++] = c;
-        }
-        
         SchemePattern = Pattern.compile(RegExScheme);
         AuthorityPattern = Pattern.compile(RegExAuthority);
     }
     
     public URI(String url) throws URISyntaxException {
-        scheme = parseScheme(url);
-        parseAuthority(url);
+        remaining.append(url);
+        parseScheme(remaining);
+        parseAuthority(remaining);
     }
     
-    public String host() {
-        return this.authority;
+    public String authority() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(isAuthory ? "//" : "");
+        sb.append(userinfo);
+        return sb.toString();
     }
     
     public String scheme() {
         return this.scheme;
     }
     
-    public String path() {
-        return this.path;
+    public String userinfo() {
+        return this.userinfo;
     }
     
-    public String fragment() {
-        return this.fragment;
+    public String username() {
+        String[] parts = userinfo.split(":");
+        return parts[0];
     }
     
-    public int port() {
-        return this.port;
+    public String userpass() {
+        String[] parts = userinfo.split(":");
+        return (parts.length > 1) ? parts[1] : "";
     }
     
-    private String parseScheme(String url) throws URISyntaxException {
+    private void parseScheme(StringBuilder url) throws URISyntaxException {
         Matcher matcher = SchemePattern.matcher(url);
         if (matcher.find()) {
-            return matcher.group(1);
+            this.scheme = matcher.group(1);
+            url.delete(matcher.start(0), matcher.end(0));
+        } else {
+            throw new URISyntaxException(url.toString(), "No valid scheme");
         }
-        throw new URISyntaxException(url, "No valid scheme");
     }
     
-    public static String parseAuthority(String url) {
-        return "";
+    private void parseAuthority(StringBuilder url) throws URISyntaxException {
+        System.out.println("parseAuthority: " + url);
+        Matcher matcher = AuthorityPattern.matcher(url);
+        if (matcher.find()) {
+            this.userinfo = matcher.group(1);
+            this.hostname = matcher.group(2);
+            System.out.println("username: " + matcher.group(1));
+            System.out.println("hostname: " + matcher.group(2));
+            url.delete(matcher.start(0), matcher.end(0) - 1);
+        } else {
+            throw new URISyntaxException(url.toString(), "No valid authority");
+        }
     }
 }
 
