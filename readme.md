@@ -1,7 +1,7 @@
-URI Encoder
+URI Parser
 ===========
 
-The URI Encoder is based on the [RFC 3986](http://www.ietf.org/rfc/rfc3986.txt).
+The URI Parser is based on the [RFC 3986](http://www.ietf.org/rfc/rfc3986.txt).
 
 The specification uses the Augmented Backus-Naur Form (ABNF) (see [RFC 2234](http://www.ietf.org/rfc/rfc2234.txt)) for
 Syntax Specification (see section 1.3 of RFC 3986)
