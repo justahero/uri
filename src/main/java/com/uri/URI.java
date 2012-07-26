@@ -1,6 +1,7 @@
 package com.uri;
 
 import java.net.URISyntaxException;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -12,36 +13,31 @@ public class URI {
     private final static String RegExScheme    = "^([a-zA-z]+[a-zA-z+-.]*):";
     
     private final static String RegExUserInfo  = "(["+Unreserved+SubDelimiters+":]|"+PercentEncoded+")+";
+    private final static String RegExAuthority = "";
     
-    //private final static String RegExHost     = "((?:["+Unreserved+SubDelimiters+"]|"+PercentEncoded+")*)";
     private final static Pattern SchemePattern;
+    private final static Pattern AuthorityPattern;
+    
     private final static Pattern UserInfoPattern;
     
     private String  scheme    = "";
     private String  userinfo  = "";
     private String  username  = "";
     private String  userpass  = "";
-    private String  hostname  = "";
     private boolean hasAuthority = true;
     
     private StringBuilder remaining = new StringBuilder();
     
     static {
-        SchemePattern   = Pattern.compile(RegExScheme);
-        UserInfoPattern = Pattern.compile(RegExUserInfo);
+        SchemePattern    = Pattern.compile(RegExScheme);
+        AuthorityPattern = Pattern.compile(RegExAuthority);
+        UserInfoPattern  = Pattern.compile(RegExUserInfo);
     }
     
     public URI(String url) throws URISyntaxException {
         remaining.append(url);
         parseScheme(remaining);
         parseAuthority(remaining);
-    }
-    
-    public String authority() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(hasAuthority ? "//" : "");
-        sb.append(userinfo);
-        return sb.toString();
     }
     
     public String scheme() {
@@ -63,7 +59,7 @@ public class URI {
     private void parseScheme(StringBuilder url) throws URISyntaxException {
         Matcher matcher = SchemePattern.matcher(url);
         if (matcher.find()) {
-            this.scheme = matcher.group(1);
+            scheme = matcher.group(1);
             url.delete(matcher.start(0), matcher.end(0));
         } else {
             throw new URISyntaxException(url.toString(), "No valid scheme");
@@ -77,6 +73,7 @@ public class URI {
             if (userInfoIndex != -1) {
                 String userInfo = url.substring(2, userInfoIndex);
                 parseUserInfo(userInfo);
+                url.delete(0, userInfoIndex);
             }
         } else {
             throw new URISyntaxException(url.toString(), "Currently this is not supported");

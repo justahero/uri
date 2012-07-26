@@ -82,17 +82,42 @@ Components:
 * path can be empty (no characters)
 
 
-
 #### Scheme (3.1)
 
     Scheme = ALPHA *( ALPHA || DIGIT || '+' || '-' || '.' )
     [a-zA-Z]+[a-zA-Z0-9+.-]*
+
 
 #### Authority (3.2)
 
     Authority = [ userinfo "@" ] host [ ":" port ]
     User Info
 
+User info can be omitted but when present must be delimited by a '@' sign.
+The following examples show valid user infos
+
+    http://foo@example.com
+    http://foo:@example.com
+    http://foo:bar@example.com
+
+The following are not allowed:
+
+    http://@example.com
+    http://test:bar:foo@example.com
+    http://:pass@example.com
+
+
+#### Host (3.3)
+
+    host = IP-literal / IPv4Address / reg-name
+
+> A host identified by an Internet Protocol literal address, version 6
+> [RFC3513] or later, is distinguished by enclosing the IP literal
+> within square brackets ("[" and "]").  This is the only place where
+> square bracket characters are allowed in the URI syntax.
+
+This seems to contradict the fact that square brackets as parts of the generic delimiters
+are allowed in the Query part.
 
 References
 ----------
