@@ -40,33 +40,41 @@ public class URIParseTest {
     }
     
     @Test(expected=URISyntaxException.class)
+    public void userInfoCannotBeEmptyIfAtSignIsPresent() throws URISyntaxException {
+        new URI("http://@example.com");
+    }
+    
+    @Test(expected=URISyntaxException.class)
     public void userInfoNameWithInvalidCharacter() throws URISyntaxException {
-        new URI("http://te/st:bla@example.com");
+        new URI("http://te[]st:bla@example.com");
     }
     
     @Test
     public void userInfoWithNameOnly() throws URISyntaxException {
         URI uri = new URI("http://username@example.com");
-        Assert.assertEquals("username", uri.userinfo());
+        Assert.assertEquals("username", uri.username());
+        Assert.assertEquals("", uri.userpass());
     }
     
     @Test
     public void userInfoWithNameAndColon() throws URISyntaxException {
         URI uri = new URI("http://username:@example.com");
-        Assert.assertEquals("username:", uri.userinfo());
-    }
-    
-    @Test
-    public void userInfoNameOnly() throws URISyntaxException {
-        URI uri = new URI("http://testuser@example.com");
-        Assert.assertEquals("testuser", uri.username());
+        Assert.assertEquals("username", uri.username());
         Assert.assertEquals("", uri.userpass());
     }
     
     @Test
-    public void userInfoNameDiscardsColon() throws URISyntaxException {
-        URI uri = new URI("http://testuser:@example.com");
-        Assert.assertEquals("testuser", uri.username());
+    public void userWithNameAndPass() throws URISyntaxException {
+        URI uri = new URI("http://foo:bar@example.com");
+        Assert.assertEquals("foo", uri.username());
+        Assert.assertEquals("bar", uri.userpass());
+    }
+    
+    // NOTE this point is not exactly clear in the RFC 3986 but it seems a user name must be given
+    // when a user pass is present.
+    @Test(expected=URISyntaxException.class)
+    public void userInfoNameIsNotAllowedToHavePassOnly() throws URISyntaxException {
+        new URI("http://:pass@example.com");
     }
     
     @Test(expected=URISyntaxException.class)

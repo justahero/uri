@@ -9,32 +9,26 @@ public class URI {
     private final static String Unreserved     = "a-zA-Z0-9-._~";
     private final static String SubDelimiters  = "!$&'()*+,;=";
     private final static String PercentEncoded = "%[0-9A-F]{2}"; 
+    private final static String RegExScheme    = "^([a-zA-z]+[a-zA-z+-.]*):";
     
-    private final static String RegExScheme = "^([a-zA-z]+[a-zA-z+-.]*):";
+    private final static String RegExUserInfo  = "(["+Unreserved+SubDelimiters+":]|"+PercentEncoded+")+";
     
-    private final static String RegExUserInfo = "(?:((?:["+Unreserved+"!$&'()*+,;=:]|"+PercentEncoded+")*)@)?";
-    private final static String RegExHost     = "((?:["+Unreserved+SubDelimiters+"]|"+PercentEncoded+")*)";
-    
-    // ((?:[a-z0-9-._~!$&'()*+,;=]|%[0-9A-F]{2})*)
-    private final static String RegExAuthority = 
-            "//" +
-            RegExUserInfo +
-            RegExHost +
-            "";
-    
+    //private final static String RegExHost     = "((?:["+Unreserved+SubDelimiters+"]|"+PercentEncoded+")*)";
     private final static Pattern SchemePattern;
-    private final static Pattern AuthorityPattern;
+    private final static Pattern UserInfoPattern;
     
     private String  scheme    = "";
     private String  userinfo  = "";
+    private String  username  = "";
+    private String  userpass  = "";
     private String  hostname  = "";
-    private boolean isAuthory = true;
+    private boolean hasAuthority = true;
     
     private StringBuilder remaining = new StringBuilder();
     
     static {
-        SchemePattern = Pattern.compile(RegExScheme);
-        AuthorityPattern = Pattern.compile(RegExAuthority);
+        SchemePattern   = Pattern.compile(RegExScheme);
+        UserInfoPattern = Pattern.compile(RegExUserInfo);
     }
     
     public URI(String url) throws URISyntaxException {
@@ -45,27 +39,25 @@ public class URI {
     
     public String authority() {
         StringBuilder sb = new StringBuilder();
-        sb.append(isAuthory ? "//" : "");
+        sb.append(hasAuthority ? "//" : "");
         sb.append(userinfo);
         return sb.toString();
     }
     
     public String scheme() {
-        return this.scheme;
+        return scheme;
     }
     
     public String userinfo() {
-        return this.userinfo;
+        return userinfo;
     }
     
     public String username() {
-        String[] parts = userinfo.split(":");
-        return parts[0];
+        return username;
     }
     
     public String userpass() {
-        String[] parts = userinfo.split(":");
-        return (parts.length > 1) ? parts[1] : "";
+        return userpass;
     }
     
     private void parseScheme(StringBuilder url) throws URISyntaxException {
@@ -79,17 +71,36 @@ public class URI {
     }
     
     private void parseAuthority(StringBuilder url) throws URISyntaxException {
-        System.out.println("parseAuthority: " + url);
-        Matcher matcher = AuthorityPattern.matcher(url);
-        if (matcher.find()) {
-            this.userinfo = matcher.group(1);
-            this.hostname = matcher.group(2);
-            System.out.println("username: " + matcher.group(1));
-            System.out.println("hostname: " + matcher.group(2));
-            url.delete(matcher.start(0), matcher.end(0) - 1);
+        if (url.toString().startsWith("//")) {
+            hasAuthority = true;
+            int userInfoIndex = url.indexOf("@");
+            if (userInfoIndex != -1) {
+                String userInfo = url.substring(2, userInfoIndex);
+                parseUserInfo(userInfo);
+            }
         } else {
-            throw new URISyntaxException(url.toString(), "No valid authority");
+            throw new URISyntaxException(url.toString(), "Currently this is not supported");
         }
+    }
+    
+    private void parseUserInfo(String userInfo) throws URISyntaxException {
+        if (userInfo.isEmpty()) {
+            throw new URISyntaxException(userInfo, "User info must be specified if '@' is present");
+        }
+        
+        String[] parts = userInfo.split(":");
+        if (parts.length > 2 || parts[0].isEmpty() || !isUserInfoValid(userInfo)) {
+            throw new URISyntaxException(userInfo, "User info is not valid");
+        }
+        
+        username = parts[0];
+        userpass = (parts.length > 1) ? parts[1] : "";
+        this.userinfo = userInfo;
+    }
+    
+    private boolean isUserInfoValid(String userInfo) {
+        Matcher matcher = UserInfoPattern.matcher(userInfo);
+        return matcher.matches();
     }
 }
 
