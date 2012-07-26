@@ -68,5 +68,10 @@ public class URIParseTest {
         URI uri = new URI("http://testuser:@example.com");
         Assert.assertEquals("testuser", uri.username());
     }
+    
+    @Test(expected=URISyntaxException.class)
+    public void userInfoOnlyAllowsSingleColon() throws URISyntaxException {
+        new URI("http://test:double:pass@example.com");
+    }
 }
 
