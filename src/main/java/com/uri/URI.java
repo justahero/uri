@@ -13,7 +13,20 @@ public class URI {
     private final static String RegExScheme    = "^([a-zA-z]+[a-zA-z+-.]*):";
     
     private final static String RegExUserInfo  = "(["+Unreserved+SubDelimiters+":]|"+PercentEncoded+")+";
-    private final static String RegExAuthority = "";
+    private final static String RegExAuthority =
+            "(?:" +
+            "//" +
+            "((?:["+Unreserved+SubDelimiters+":]|"+PercentEncoded+")*)@" +
+            //"(?:(.+?)@)?" +
+            
+            //"  (?:["+Unreserved+SubDelimiters+"]|"+PercentEncoded+")+" +
+//            "  (.+)" +
+//            "  (?::([0-9]+))?" +
+//            "  (/(?:["+Unreserved+SubDelimiters+":@/]|"+PercentEncoded+")*)?" +
+//            "  |" +
+//            "  (/?(?:["+Unreserved+SubDelimiters+":@]|"+PercentEncoded+")+" +
+//            "     (?:["+Unreserved+SubDelimiters+":@]|"+PercentEncoded+")*)?" +
+            ")";
     
     private final static Pattern SchemePattern;
     private final static Pattern AuthorityPattern;
@@ -24,7 +37,6 @@ public class URI {
     private String  userinfo  = "";
     private String  username  = "";
     private String  userpass  = "";
-    private boolean hasAuthority = true;
     
     private StringBuilder remaining = new StringBuilder();
     
@@ -67,6 +79,22 @@ public class URI {
     }
     
     private void parseAuthority(StringBuilder url) throws URISyntaxException {
+        Matcher matcher = AuthorityPattern.matcher(url);
+        System.out.println("parse authority: " + url);
+        if (matcher.find()) {
+            for (int i = 0; i < matcher.groupCount(); i++) {
+                String text = matcher.group(i);
+                System.out.println("  " + text);
+            }
+            
+            if (url.toString().startsWith("//")) {
+                String userInfo = matcher.group(1);
+                System.out.println("  userinfo: " + userInfo);
+                if (userInfo != null)
+                    parseUserInfo(userInfo);
+            }
+        }
+        /*
         if (url.toString().startsWith("//")) {
             hasAuthority = true;
             int userInfoIndex = url.indexOf("@");
@@ -78,6 +106,7 @@ public class URI {
         } else {
             throw new URISyntaxException(url.toString(), "Currently this is not supported");
         }
+        */
     }
     
     private void parseUserInfo(String userInfo) throws URISyntaxException {
