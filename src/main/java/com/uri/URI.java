@@ -14,10 +14,7 @@ public class URI {
     
     private final static String RegExUserInfo  = "(["+Unreserved+SubDelimiters+":]|"+PercentEncoded+")+";
     private final static String RegExAuthority =
-            "(?:" +
-            "//" +
-            "((?:["+Unreserved+SubDelimiters+":]|"+PercentEncoded+")*)@" +
-            //"(?:(.+?)@)?" +
+            "//(?:(.*)@)";
             
             //"  (?:["+Unreserved+SubDelimiters+"]|"+PercentEncoded+")+" +
 //            "  (.+)" +
@@ -26,7 +23,6 @@ public class URI {
 //            "  |" +
 //            "  (/?(?:["+Unreserved+SubDelimiters+":@]|"+PercentEncoded+")+" +
 //            "     (?:["+Unreserved+SubDelimiters+":@]|"+PercentEncoded+")*)?" +
-            ")";
     
     private final static Pattern SchemePattern;
     private final static Pattern AuthorityPattern;
@@ -83,15 +79,14 @@ public class URI {
         System.out.println("parse authority: " + url);
         if (matcher.find()) {
             for (int i = 0; i < matcher.groupCount(); i++) {
-                String text = matcher.group(i);
+                String text = matcher.group(i + 1);
                 System.out.println("  " + text);
             }
             
-            if (url.toString().startsWith("//")) {
-                String userInfo = matcher.group(1);
-                System.out.println("  userinfo: " + userInfo);
-                if (userInfo != null)
-                    parseUserInfo(userInfo);
+            String userInfo = matcher.group(1);
+            System.out.println("  userinfo: " + userInfo);
+            if (userInfo != null) {
+                parseUserInfo(userInfo);
             }
         }
         /*
