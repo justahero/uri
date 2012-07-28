@@ -15,7 +15,13 @@ public class URITest {
     
     @Test
     public void transformPercentEncodedLowerCaseCharacters() throws URISyntaxException {
-        URI uri = new URI("http://www.%66%6f%f%62%61%72.com");
+        URI uri = new URI("http://www.%66%6f%6f%62%61%72.com");
+        Assert.assertEquals("www.foobar.com", uri.host());
+    }
+    
+    @Test
+    public void transformPercentEncodedLowerCaseCharactersBug() throws URISyntaxException {
+        URI uri = new URI("http://www.f%6f%6f%62%61%72.com");
         Assert.assertEquals("www.foobar.com", uri.host());
     }
     
