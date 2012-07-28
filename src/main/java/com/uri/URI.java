@@ -16,7 +16,8 @@ public class URI {
     private final static String RegExPort      = "([0-9]{1,5})";
     
     private final static String RegExAuthority =
-          "//(?:(.*)@)?(?:([a-zA-Z0-9-._~]*))(?::(.*))?";
+          //"//(?:(.*)@)?(?:([a-zA-Z0-9-._~]*))(?::(.*))?";
+          "//(?:(.*)@)?(?:([^:/#]+))(?::(.*))?";
     
     private final static Pattern SchemePattern;
     private final static Pattern AuthorityPattern;
@@ -42,11 +43,15 @@ public class URI {
     
     public URI(String url) throws URISyntaxException {
         System.out.println("Parsing url: " + url);
-        remaining.append(url);
+        remaining.append(removePercentEncodedCharacters(url.toLowerCase()));
         parseScheme(remaining);
         parseAuthority(remaining);
     }
     
+    private String removePercentEncodedCharacters(String url) {
+        return url;
+    }
+
     public String scheme() {
         return scheme;
     }
