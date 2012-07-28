@@ -27,7 +27,7 @@ public class URITest {
     
     @Test
     public void noTransformOfPercentEncodedSpecialCharacters() throws URISyntaxException {
-        URI uri = new URI("http://www.test%7B%7D.com");
+        URI uri = new URI("http://www.Test%7B%7D.com");
         Assert.assertEquals("www.test%7B%7D.com", uri.host());
     }
 }

@@ -6,7 +6,9 @@ import java.util.regex.Pattern;
 
 public class URI {
     
-    private final static String Unreserved     = "a-zA-Z0-9-._~";
+    private final static String UnreservedChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~";
+    private final static String Unreserved = "a-zA-Z0-9-._~";
+    
     private final static String SubDelimiters  = "!$&'()*+,;=";
     private final static String PercentEncoded = "%[0-9A-F]{2}"; 
     
@@ -16,14 +18,15 @@ public class URI {
     private final static String RegExPort      = "([0-9]{1,5})";
     
     private final static String RegExAuthority =
-          //"//(?:(.*)@)?(?:([a-zA-Z0-9-._~]*))(?::(.*))?";
-          "//(?:(.*)@)?(?:([^:/#]+))(?::(.*))?";
+          "//(?:(.*)@)?(?:([^:/#\\?]+))(?::(.*))?";
     
     private final static Pattern SchemePattern;
     private final static Pattern AuthorityPattern;
     private final static Pattern UserInfoPattern;
     private final static Pattern HostPattern;
     private final static Pattern PortPattern;
+    
+    private final static Pattern PercentEncodingPattern;
     
     private String scheme    = "";
     private String username  = "";
@@ -39,6 +42,7 @@ public class URI {
         UserInfoPattern  = Pattern.compile(RegExUserInfo);
         HostPattern      = Pattern.compile(RegExHost);
         PortPattern      = Pattern.compile(RegExPort);
+        PercentEncodingPattern = Pattern.compile("(?:%([0-9A-F]{2})*)");
     }
     
     public URI(String url) throws URISyntaxException {
@@ -49,9 +53,29 @@ public class URI {
     }
     
     private String removePercentEncodedCharacters(String url) {
-        return url;
+        
+        StringBuilder result = new StringBuilder(url);
+        
+        Matcher matcher = PercentEncodingPattern.matcher(url);
+        while (matcher.find()) {
+            String hexValue = matcher.group(1);
+            String replaced = getPercentEncodedChar(hexValue);
+            result.replace(matcher.start(), matcher.end(), replaced);
+            matcher = PercentEncodingPattern.matcher(result);
+        }
+        System.out.println("  result: " + result);
+        return result.toString();
     }
-
+    
+    private String getPercentEncodedChar(String hexValue) {
+        int value = Integer.parseInt(hexValue, 16);
+        int index = 0;
+        if ((index = UnreservedChars.indexOf(value)) != -1) {
+            return "" + UnreservedChars.charAt(index);
+        }
+        return "%" + hexValue;
+    }
+    
     public String scheme() {
         return scheme;
     }
