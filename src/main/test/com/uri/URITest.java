@@ -13,7 +13,6 @@ public class URITest {
         Assert.assertEquals("http", uri.scheme());
         Assert.assertEquals("user", uri.username());
         Assert.assertEquals("pw", uri.userpass());
-        Assert.assertEquals("user:pw", uri.userinfo());
     }
 }
 
