@@ -12,10 +12,12 @@ public class URI {
     
     private final static String RegExScheme    = "^([a-zA-z]+[a-zA-z+-.]*):";
     private final static String RegExUserInfo  = "(["+Unreserved+SubDelimiters+":]|"+PercentEncoded+")+";
-    private final static String RexExHost      = "(?:(["+Unreserved+SubDelimiters+"]|"+PercentEncoded+")*)?";
+    private final static String RegExHost      = "(?:(["+Unreserved+SubDelimiters+"]|"+PercentEncoded+")*)?";
+    private final static String RegExPort      = "([0-9]{1,5})";
     
     private final static String RegExAuthority =
-          "//(?:(.*)@)?(?:(.*))";
+          //"//(?:(.*)@)?(?:(.*))(?::([0-9]+))?";
+          "//(?:(.*)@)?(?:([a-zA-Z0-9-._~]*))(?::([0-9]+))?";
     
     private final static Pattern SchemePattern;
     private final static Pattern AuthorityPattern;
@@ -34,7 +36,7 @@ public class URI {
         SchemePattern    = Pattern.compile(RegExScheme);
         AuthorityPattern = Pattern.compile(RegExAuthority);
         UserInfoPattern  = Pattern.compile(RegExUserInfo);
-        HostPattern      = Pattern.compile(RexExHost);
+        HostPattern      = Pattern.compile(RegExHost);
     }
     
     public URI(String url) throws URISyntaxException {
@@ -80,9 +82,11 @@ public class URI {
         if (matcher.find()) {
             System.out.println("  userinfo: " + matcher.group(1));
             System.out.println("  host: " + matcher.group(2));
+            System.out.println("  port: " + matcher.group(3));
             
             parseUserInfo(matcher.group(1));
             parseHost(matcher.group(2));
+            parsePort(matcher.group(3));
         }
     }
     
@@ -114,6 +118,12 @@ public class URI {
             throw new URISyntaxException(hostPart, "Host is not valid");
         }
         host = hostPart;
+    }
+    
+    private void parsePort(String port) throws URISyntaxException {
+        if (port != null) {
+            this.port = port;
+        }
     }
 }
 
