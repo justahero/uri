@@ -16,13 +16,13 @@ public class URI {
     private final static String RegExPort      = "([0-9]{1,5})";
     
     private final static String RegExAuthority =
-          //"//(?:(.*)@)?(?:(.*))(?::([0-9]+))?";
-          "//(?:(.*)@)?(?:([a-zA-Z0-9-._~]*))(?::([0-9]+))?";
+          "//(?:(.*)@)?(?:([a-zA-Z0-9-._~]*))(?::(.*))?";
     
     private final static Pattern SchemePattern;
     private final static Pattern AuthorityPattern;
     private final static Pattern UserInfoPattern;
     private final static Pattern HostPattern;
+    private final static Pattern PortPattern;
     
     private String scheme    = "";
     private String username  = "";
@@ -37,6 +37,7 @@ public class URI {
         AuthorityPattern = Pattern.compile(RegExAuthority);
         UserInfoPattern  = Pattern.compile(RegExUserInfo);
         HostPattern      = Pattern.compile(RegExHost);
+        PortPattern      = Pattern.compile(RegExPort);
     }
     
     public URI(String url) throws URISyntaxException {
@@ -121,9 +122,18 @@ public class URI {
     }
     
     private void parsePort(String port) throws URISyntaxException {
-        if (port != null) {
-            this.port = port;
+        if (port == null)
+            return;
+        
+        Matcher matcher = PortPattern.matcher(port);
+        if (!matcher.matches()) {
+            throw new URISyntaxException(port, "Invalid port");
         }
+        int portNumber = Integer.valueOf(port);
+        if (portNumber < 1 || portNumber > 65535) {
+            throw new URISyntaxException(port, "Invalid port number");
+        }
+        this.port = port;
     }
 }
 
