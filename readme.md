@@ -117,7 +117,19 @@ The following are not allowed:
 > square bracket characters are allowed in the URI syntax.
 
 This seems to contradict the fact that square brackets as parts of the generic delimiters
-are allowed in the Query part.
+are allowed in the Query subcomponent.
+
+* host is case-insensitive
+* percent encoded octets upper case letters (A-F)
+
+
+IPv6Address
+
+    x:x:x:x:x:x:x:x
+
+each component is a 16 bit hexadecimal value.
+
+
 
 References
 ----------
@@ -144,3 +156,9 @@ A few discussions on URL encoding in Java
 * [Addressable](https://github.com/sporkmonger/addressable) Ruby gem, based on RFC 3986
 * [URI Validation / Parsing](http://snipplr.com/view/6889/) - Regular Expressions
 * [Google API Java Client API](http://javadoc.google-api-java-client.googlecode.com/hg/1.0.10-alpha/index.html)
+
+
+### Test cases and validation examples
+
+* [Addressable RSpec Suite](https://github.com/Sporkmonger/Addressable/blob/master/spec/addressable/uri_spec.rb)
+* [W3 URI Testing](http://www.w3.org/2004/04/uri-rel-test.html)

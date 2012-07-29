@@ -2,41 +2,45 @@ package com.uri;
 
 import java.net.URISyntaxException;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 public class URISchemeTest {
-
-    @Test(expected=URISyntaxException.class)
-    public void schemeMustStartWithLetterAndNotPlus() throws URISyntaxException {
-        new URI("+http://example.com");
+    
+    @Test
+    public void schemeMustNotStartWithInvalidCharacter() throws URISyntaxException {
+        URIAssert.exception("+http://example.com");
+        URIAssert.exception("-http://example.com");
+        URIAssert.exception(".ftp://example.com");
     }
-
-    @Test(expected=URISyntaxException.class)
-    public void schemeMustStartWithLetterAndNotHyphen() throws URISyntaxException {
-        new URI("-http://example.com");
+    
+    @Test
+    public void schemeMustNotContainInvalidCharacters() throws URISyntaxException {
+        URIAssert.exception("ft9p://example.com");
+        URIAssert.exception("ft<>p://example.com");
     }
-
-    @Test(expected=URISyntaxException.class)
-    public void schemeMustStartWithLetterAndNotDot() throws URISyntaxException {
-        new URI(".ftp://example.com");
+    
+    @Test
+    public void schemeMustNotBeNumbers() throws URISyntaxException {
+        URIAssert.exception("1234://test.com");
+        URIAssert.exception("99://test.com");
     }
-
-    @Test(expected=URISyntaxException.class)
-    public void schemeMustNotContainOtherOctets() throws URISyntaxException {
-        new URI("ft9p://example.com");
+    
+    @Test
+    public void schemeMustContainHierarchicalComponent() throws URISyntaxException {
+        URIAssert.exception("ftp:");
+        URIAssert.exception("http:");
+        URIAssert.exception("mail_to:");
     }
-
+    
     @Test
     public void schemeMustStartWithLetter() throws URISyntaxException {
-        URI uri = new URI("http://example.com");
-        Assert.assertEquals("http", uri.scheme());
+        URIAssert.scheme("http://example.com", "http");
+        URIAssert.scheme("ftp://user:pass@test.com/here", "ftp");
     }
-
+    
     @Test
     public void schemeAllowsDotHyphenAndPlus() throws URISyntaxException {
-        URI uri = new URI("t.a+b-c://test.com");
-        Assert.assertEquals("t.a+b-c", uri.scheme());
+        URIAssert.scheme("t.a+b-c://test.com", "t.a+b-c");
     }
 
 }

@@ -2,38 +2,43 @@ package com.uri;
 
 import java.net.URISyntaxException;
 
-import org.junit.Assert;
 import org.junit.Test;
 
 public class URITest {
     
     @Test
-    public void transformPercentEncodedCharactersLiterals() throws URISyntaxException {
-        URI uri = new URI("http://www.%74%65%73%74.com");
-        Assert.assertEquals("www.test.com", uri.host());
+    public void hostWithPercentEncodedCharacters() throws URISyntaxException {
+        URIAssert.host("http://www.%74%65%73%74.com", "www.test.com");
     }
     
     @Test
-    public void transformPercentEncodedLowerCaseCharacters() throws URISyntaxException {
-        URI uri = new URI("http://www.%66%6f%6f%62%61%72.com");
-        Assert.assertEquals("www.foobar.com", uri.host());
+    public void hostWithSingleDigitPercentEncodedCharacter() {
+        URIAssert.exception("http://www.ex%4.com");
     }
     
     @Test
-    public void transformPercentEncodedLowerCaseCharactersBug() throws URISyntaxException {
-        URI uri = new URI("http://www.f%6f%6f%62%61%72.com");
-        Assert.assertEquals("www.foobar.com", uri.host());
+    public void hostWithLetterInPercentEncodedOctet() {
+        URIAssert.exception("http://www.ex%er%01.com");
+    }
+    
+    @Test
+    public void hostWithDoublePercentageSigns() {
+        URIAssert.exception("http://www.tes%%t.com");
+    }
+    
+    @Test
+    public void hostTransformsToPercentEncodedLowerCaseCharacters() throws URISyntaxException {
+        URIAssert.host("http://www.%66%6f%6f%62%61%72.com", "www.foobar.com");
     }
     
     @Test
     public void transformPercentEncodedUpperCaseCharacters() throws URISyntaxException {
-        URI uri = new URI("http://www.%44%42%50.com"); // => 'DBP'
-        Assert.assertEquals("www.dbp.com", uri.host());
+        // => 'DBP'
+        URIAssert.host("http://www.%44%42%50.com", "www.dbp.com");
     }
     
     @Test
     public void noTransformOfPercentEncodedSpecialCharacters() throws URISyntaxException {
-        URI uri = new URI("http://www.Test%7B%7D.com");
-        Assert.assertEquals("www.test%7B%7D.com", uri.host());
+        URIAssert.host("http://www.Test%7B%7D.com", "www.test%7B%7D.com");
     }
 }
