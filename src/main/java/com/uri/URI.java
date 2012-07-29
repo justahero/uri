@@ -6,8 +6,6 @@ import java.util.regex.Pattern;
 
 public class URI {
     
-    private final static String UnreservedChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~";
-    
     private final static String RegExScheme    = "^([a-zA-z]+[a-zA-z+-.]*):";
     private final static String RegExUserInfo  = "([a-zA-Z0-9-._~!$&'()*+,;=:]|%[0-9a-fA-F]{2})+";
     private final static String RegExHost      = "(?:([a-zA-Z0-9-._~!$&'()*+,;=]|%[0-9a-fA-F]{2})*)?";
@@ -25,8 +23,6 @@ public class URI {
     private final static Pattern HostPattern;
     private final static Pattern PortPattern;
     
-    private final static Pattern PercentEncodingPattern;
-    
     private String scheme    = "";
     private String username  = "";
     private String userpass  = "";
@@ -41,35 +37,12 @@ public class URI {
         UserInfoPattern  = Pattern.compile(RegExUserInfo);
         HostPattern      = Pattern.compile(RegExHost);
         PortPattern      = Pattern.compile(RegExPort);
-        PercentEncodingPattern = Pattern.compile("(?:%([a-fA-F0-9]{2})*)");
     }
     
     public URI(String url) throws URISyntaxException {
-        remaining.append(removePercentEncodedCharacters(url.toLowerCase()));
+        remaining.append(URIUtils.removePercentEncodedCharacters(url.toLowerCase()));
         parseScheme(remaining);
         parseAuthority(remaining);
-    }
-    
-    private String removePercentEncodedCharacters(String url) {
-        StringBuilder result = new StringBuilder(url);
-        Matcher matcher = PercentEncodingPattern.matcher(result);
-        int index = 0;
-        while (matcher.find(index++)) {
-            String hexValue = matcher.group(1);
-            String replaced = getPercentEncodedChar(hexValue);
-            result.replace(matcher.start(), matcher.end(), replaced);
-            matcher.reset();
-        }
-        return result.toString();
-    }
-    
-    private String getPercentEncodedChar(String hexValue) {
-        int value = Integer.parseInt(hexValue, 16);
-        int index = 0;
-        if ((index = UnreservedChars.indexOf(value)) != -1) {
-            return ("" + UnreservedChars.charAt(index)).toLowerCase();
-        }
-        return "%" + hexValue.toUpperCase();
     }
     
     public String scheme() {
