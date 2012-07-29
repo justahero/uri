@@ -12,11 +12,11 @@ public class URI {
     private final static String RegExPort      = "([0-9]{1,5})";
     
     private final static String RegExAuthority =
-          "//" +
+          "\\/\\/" +
           "(?:(.*)@)?" +
           "(?:([a-zA-Z0-9-._~%]+)|(?:\\[(.+)\\])|(?:\\[v(.+)\\]))" +
           "(?::([0-9]+))?" +
-          "(?:(\\//[a-zA-Z0-9\\-._~%!$&'()*+,;=:@])*/)?";
+          "(?:(\\/[a-zA-Z0-9-._~%!$&'()*+,;=:@]*))?";
     
     private final static Pattern SchemePattern;
     private final static Pattern AuthorityPattern;
@@ -165,7 +165,9 @@ public class URI {
     }
     
     private void parsePath(String path) {
-        this.path = path;
+        if (path != null) {
+            this.path = path;
+        }
     }
     
 }
