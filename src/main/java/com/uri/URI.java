@@ -7,20 +7,16 @@ import java.util.regex.Pattern;
 public class URI {
     
     private final static String UnreservedChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~";
-    private final static String Unreserved      = "a-zA-Z0-9-._~";
-    
-    private final static String SubDelimiters  = "!$&'()*+,;=";
-    private final static String PercentEncoded = "%[0-9a-fA-F]{2}"; 
     
     private final static String RegExScheme    = "^([a-zA-z]+[a-zA-z+-.]*):";
-    private final static String RegExUserInfo  = "(["+Unreserved+SubDelimiters+":]|"+PercentEncoded+")+";
-    private final static String RegExHost      = "(?:(["+Unreserved+SubDelimiters+"]|"+PercentEncoded+")*)?";
+    private final static String RegExUserInfo  = "([a-zA-Z0-9-._~!$&'()*+,;=:]|%[0-9a-fA-F]{2})+";
+    private final static String RegExHost      = "(?:([a-zA-Z0-9-._~!$&'()*+,;=]|%[0-9a-fA-F]{2})*)?";
     private final static String RegExPort      = "([0-9]{1,5})";
     
     private final static String RegExAuthority =
           "//" +
           "(?:(.*)@)?" +
-          "(?:([^:/#\\?]+))" +
+          "(?:(?:([a-zA-Z0-9-._~%]+))|(?:\\[([0-9a-fA-F:.]+)\\]))" +
           "(?::(.*))?";
     
     private final static Pattern SchemePattern;
@@ -109,9 +105,14 @@ public class URI {
     private void parseAuthority(StringBuilder url) throws URISyntaxException {
         Matcher matcher = AuthorityPattern.matcher(url);
         if (matcher.find()) {
-            parseUserInfo(matcher.group(1));
-            parseHost(matcher.group(2));
-            parsePort(matcher.group(3));
+            String userInfo  = matcher.group(1);
+            String namedHost = matcher.group(2);
+            String ipv6Host  = matcher.group(3);
+            String port      = matcher.group(4);
+            
+            parseUserInfo(userInfo);
+            parseHost(namedHost, ipv6Host);
+            parsePort(port);
         }
     }
     
@@ -134,15 +135,26 @@ public class URI {
         return matcher.matches();
     }
     
-    private void parseHost(String hostPart) throws URISyntaxException {
-        if (hostPart == null) {
-            throw new URISyntaxException(hostPart, "Host must be given!");
+    private void parseHost(String namedHost, String ipV6Host) throws URISyntaxException {
+        if (namedHost != null) {
+            host = parseNamedHost(namedHost);
+        } else if (ipV6Host != null) {
+            host = parseIpV6Host(ipV6Host);
+        } else {
+            throw new URISyntaxException("", "No valid host found");
         }
-        Matcher matcher = HostPattern.matcher(hostPart);
+    }
+    
+    private String parseNamedHost(String namedHost) throws URISyntaxException {
+        Matcher matcher = HostPattern.matcher(namedHost);
         if (!matcher.matches()) {
-            throw new URISyntaxException(hostPart, "Host is not valid");
+            throw new URISyntaxException(namedHost, "Host is not valid");
         }
-        host = hostPart;
+        return namedHost;
+    }
+    
+    private String parseIpV6Host(String ipV6Host) {
+        return ipV6Host;
     }
     
     private void parsePort(String port) throws URISyntaxException {
