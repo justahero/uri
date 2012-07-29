@@ -12,6 +12,11 @@ public class URIHostTest {
         Assert.assertEquals(expectedHost, uri.host());
     }
     
+    private void assertPort(String url, String expectedPort) throws URISyntaxException {
+        URI uri = new URI(url);
+        Assert.assertEquals(expectedPort, uri.port());
+    }
+    
     @Test
     public void namedHostWithoutUserInfo() throws URISyntaxException {
         assertHost("http://www.example.com", "www.example.com");
@@ -72,6 +77,18 @@ public class URIHostTest {
     public void ipV6HostWithIpV4Part() throws URISyntaxException {
         assertHost("http://[0:0:0:0:0:0:13.1.68.3]/", "0:0:0:0:0:0:13.1.68.3");
         assertHost("http://[0:0:0:0:0:FFFF:129.144.52.38]", "0:0:0:0:0:FFFF:129.144.52.38");
+    }
+    
+    @Test
+    public void ipV6HostWithPort() throws URISyntaxException {
+        assertPort("http://[1080:0:0:0:8:800:200C:417A]:4040", "4040");
+        assertHost("http://[1080:0:0:0:8:800:200C:417A]:4040", "1080:0:0:0:8:800:200C:417A");
+    }
+    
+    @Test
+    public void ipV6HostWithPortAndPathSeparator() throws URISyntaxException {
+        assertPort("http://[1080:0:0:0:8:800:200C:417A]:4040/test", "4040");
+        assertHost("http://[1080:0:0:0:8:800:200C:417A]:8080/", "1080:0:0:0:8:800:200C:417A");
     }
 }
 

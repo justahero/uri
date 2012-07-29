@@ -8,15 +8,15 @@ public class URI {
     
     private final static String RegExScheme    = "^([a-zA-z]+[a-zA-z+-.]*):";
     private final static String RegExUserInfo  = "([a-zA-Z0-9-._~!$&'()*+,;=:]|%[0-9a-fA-F]{2})+";
-    private final static String RegExHost      = "(?:([a-zA-Z0-9-._~!$&'()*+,;=]|%[0-9a-fA-F]{2})*)?";
+    private final static String RegExNamedHost = "(?:([a-zA-Z0-9-._~!$&'()*+,;=]|%[0-9a-fA-F]{2})*)?";
     private final static String RegExPort      = "([0-9]{1,5})";
     
     private final static String RegExAuthority =
           "//" +
           "(?:(.*)@)?" +
           "(?:([a-zA-Z0-9-._~%]+)|(?:\\[(.+)\\])|(?:\\[v(.+)\\]))" +
-          "(?::(.*))?" +
-          "(?:(/[a-zA-Z0-9\\-._~%!$&'()*+,;=:@]+)*/?)";
+          "(?::([0-9]+))?" +
+          "(?:(\\//[a-zA-Z0-9\\-._~%!$&'()*+,;=:@])*/)?";
     
     private final static Pattern SchemePattern;
     private final static Pattern AuthorityPattern;
@@ -29,6 +29,7 @@ public class URI {
     private String userpass  = "";
     private String host      = "";
     private String port      = "";
+    private String path      = "";
     
     private StringBuilder remaining = new StringBuilder();
     
@@ -36,7 +37,7 @@ public class URI {
         SchemePattern    = Pattern.compile(RegExScheme);
         AuthorityPattern = Pattern.compile(RegExAuthority);
         UserInfoPattern  = Pattern.compile(RegExUserInfo);
-        HostPattern      = Pattern.compile(RegExHost);
+        HostPattern      = Pattern.compile(RegExNamedHost);
         PortPattern      = Pattern.compile(RegExPort);
     }
     
@@ -69,6 +70,10 @@ public class URI {
         return port;
     }
     
+    public String path() {
+        return path;
+    }
+    
     private void parseScheme(StringBuilder url) throws URISyntaxException {
         Matcher matcher = SchemePattern.matcher(url);
         if (matcher.find()) {
@@ -92,10 +97,12 @@ public class URI {
             String ipv6Host  = matcher.group(3);
             String ipFuture  = matcher.group(4);
             String port      = matcher.group(5);
+            String path      = matcher.group(6);
             
             parseUserInfo(userInfo);
             parseHost(namedHost, ipv6Host, ipFuture);
             parsePort(port);
+            parsePath(path);
             
             url.delete(matcher.start(), matcher.end());
         }
@@ -156,5 +163,10 @@ public class URI {
         }
         this.port = port;
     }
+    
+    private void parsePath(String path) {
+        this.path = path;
+    }
+    
 }
 
