@@ -7,10 +7,14 @@ import org.junit.Test;
 
 public class URIHostTest {
     
+    private void assertHost(String url, String expectedHost) throws URISyntaxException {
+        URI uri = new URI(url);
+        Assert.assertEquals(expectedHost, uri.host());
+    }
+    
     @Test
     public void namedHostWithoutUserInfo() throws URISyntaxException {
-        URI uri = new URI("http://www.example.com");
-        Assert.assertEquals("www.example.com", uri.host());
+        assertHost("http://www.example.com", "www.example.com");
     }
     
     @Test(expected=URISyntaxException.class)
@@ -20,8 +24,7 @@ public class URIHostTest {
     
     @Test
     public void namedHostWithUpperCaseLetters() throws URISyntaxException {
-        URI uri = new URI("http://www.EXAMPLE.cOm");
-        Assert.assertEquals("www.example.com", uri.host());
+        assertHost("http://www.EXAMPLE.cOm", "www.example.com");
     }
     
     @Test
@@ -32,20 +35,17 @@ public class URIHostTest {
     
     @Test
     public void ipV4HostWithoutUserInfo() throws URISyntaxException {
-        URI uri = new URI("http://127.0.0.1");
-        Assert.assertEquals("127.0.0.1", uri.host());
+        assertHost("http://127.0.0.1", "127.0.0.1");
     }
     
     @Test
     public void ipV4HostWithUserInfo() throws URISyntaxException {
-        URI uri = new URI("http://foo:bar@33.33.33.10");
-        Assert.assertEquals("33.33.33.10", uri.host());
+        assertHost("http://foo:bar@33.33.33.10", "33.33.33.10");
     }
     
     @Test
     public void ipV4HostWithPathSeparator() throws URISyntaxException {
-        URI uri = new URI("http://127.0.0.1/");
-        Assert.assertEquals("127.0.0.1", uri.host());
+        assertHost("http://127.0.0.1/", "127.0.0.1");
     }
 
     @Test(expected=URISyntaxException.class)
@@ -63,6 +63,16 @@ public class URIHostTest {
         new URI("http://www.test.de:123456");
     }
     
+    @Test
+    public void ipV6HostUnicast() throws URISyntaxException {
+        assertHost("http://[1080:0:0:0:8:800:200C:417A]", "1080:0:0:0:8:800:200C:417A");
+    }
+    
+    @Test
+    public void ipV6HostWithIpV4Part() throws URISyntaxException {
+        assertHost("http://[0:0:0:0:0:0:13.1.68.3]/", "0:0:0:0:0:0:13.1.68.3");
+        assertHost("http://[0:0:0:0:0:FFFF:129.144.52.38]", "0:0:0:0:0:FFFF:129.144.52.38");
+    }
 }
 
 

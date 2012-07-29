@@ -7,7 +7,7 @@ import java.util.regex.Pattern;
 public class URI {
     
     private final static String UnreservedChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~";
-    private final static String Unreserved = "a-zA-Z0-9-._~";
+    private final static String Unreserved      = "a-zA-Z0-9-._~";
     
     private final static String SubDelimiters  = "!$&'()*+,;=";
     private final static String PercentEncoded = "%[0-9a-fA-F]{2}"; 
@@ -18,7 +18,10 @@ public class URI {
     private final static String RegExPort      = "([0-9]{1,5})";
     
     private final static String RegExAuthority =
-          "//(?:(.*)@)?(?:([^:/#\\?]+))(?::(.*))?";
+          "//" +
+          "(?:(.*)@)?" +
+          "(?:([^:/#\\?]+))" +
+          "(?::(.*))?";
     
     private final static Pattern SchemePattern;
     private final static Pattern AuthorityPattern;
@@ -46,7 +49,6 @@ public class URI {
     }
     
     public URI(String url) throws URISyntaxException {
-        System.out.println("Parsing url: " + url);
         remaining.append(removePercentEncodedCharacters(url.toLowerCase()));
         parseScheme(remaining);
         parseAuthority(remaining);
@@ -57,13 +59,11 @@ public class URI {
         Matcher matcher = PercentEncodingPattern.matcher(result);
         int index = 0;
         while (matcher.find(index++)) {
-            System.out.println("  count: " + matcher.groupCount());
             String hexValue = matcher.group(1);
             String replaced = getPercentEncodedChar(hexValue);
             result.replace(matcher.start(), matcher.end(), replaced);
             matcher.reset();
         }
-        System.out.println("  result: " + result);
         return result.toString();
     }
     
@@ -108,12 +108,7 @@ public class URI {
     
     private void parseAuthority(StringBuilder url) throws URISyntaxException {
         Matcher matcher = AuthorityPattern.matcher(url);
-        System.out.println("parse authority: " + url);
         if (matcher.find()) {
-            System.out.println("  userinfo: " + matcher.group(1));
-            System.out.println("  host: " + matcher.group(2));
-            System.out.println("  port: " + matcher.group(3));
-            
             parseUserInfo(matcher.group(1));
             parseHost(matcher.group(2));
             parsePort(matcher.group(3));
