@@ -14,8 +14,9 @@ public class URI {
     private final static String RegExAuthority =
           "//" +
           "(?:(.*)@)?" +
-          "(?:(?:([a-zA-Z0-9-._~%]+))|(?:\\[([0-9a-fA-F:.]+)\\]))" +
-          "(?::(.*))?";
+          "(?:([a-zA-Z0-9-._~%]+)|(?:\\[(.+)\\])|(?:\\[v(.+)\\]))" +
+          "(?::(.*))?" +
+          "(?:(/[a-zA-Z0-9\\-._~%!$&'()*+,;=:@]+)*/?)";
     
     private final static Pattern SchemePattern;
     private final static Pattern AuthorityPattern;
@@ -43,6 +44,9 @@ public class URI {
         remaining.append(URIUtils.removePercentEncodedCharacters(url.toLowerCase()));
         parseScheme(remaining);
         parseAuthority(remaining);
+        if (remaining.length() > 0) {
+            throw new URISyntaxException(url, "Some components could not be parsed!");
+        }
     }
     
     public String scheme() {
@@ -76,16 +80,24 @@ public class URI {
     }
     
     private void parseAuthority(StringBuilder url) throws URISyntaxException {
+        System.out.println("Parsing authorinty: " + url);
         Matcher matcher = AuthorityPattern.matcher(url);
         if (matcher.find()) {
+            for (int i = 1; i < matcher.groupCount(); i++) {
+                System.out.println("  " + i + ": " + matcher.group(i));
+            }
+            
             String userInfo  = matcher.group(1);
             String namedHost = matcher.group(2);
             String ipv6Host  = matcher.group(3);
-            String port      = matcher.group(4);
+            String ipFuture  = matcher.group(4);
+            String port      = matcher.group(5);
             
             parseUserInfo(userInfo);
-            parseHost(namedHost, ipv6Host);
+            parseHost(namedHost, ipv6Host, ipFuture);
             parsePort(port);
+            
+            url.delete(matcher.start(), matcher.end());
         }
     }
     
@@ -108,7 +120,7 @@ public class URI {
         return matcher.matches();
     }
     
-    private void parseHost(String namedHost, String ipV6Host) throws URISyntaxException {
+    private void parseHost(String namedHost, String ipV6Host, String ipFuture) throws URISyntaxException {
         if (namedHost != null) {
             host = parseNamedHost(namedHost);
         } else if (ipV6Host != null) {
@@ -127,7 +139,7 @@ public class URI {
     }
     
     private String parseIpV6Host(String ipV6Host) {
-        return ipV6Host;
+        return ipV6Host.toUpperCase();
     }
     
     private void parsePort(String port) throws URISyntaxException {
