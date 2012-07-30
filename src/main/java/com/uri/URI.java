@@ -75,12 +75,16 @@ public class URI {
     }
     
     private void parseScheme(StringBuilder url) throws URISyntaxException {
+        System.out.println("Parsing scheme: " + url);
         Matcher matcher = SchemePattern.matcher(url);
         if (matcher.find()) {
             scheme = matcher.group(1);
             url.delete(matcher.start(0), matcher.end(0));
         } else {
             throw new URISyntaxException(url.toString(), "No valid scheme");
+        }
+        if (url.length() == 0) {
+            throw new URISyntaxException(url.toString(), "No remaining part");
         }
     }
     
@@ -113,7 +117,7 @@ public class URI {
             if (userInfo.isEmpty()) {
                 throw new URISyntaxException(userInfo, "User info must be specified if '@' is present");
             }
-            String[] parts = userInfo.split(":");
+            String[] parts = userInfo.split(":", -1);
             if (parts.length > 2 || parts[0].isEmpty() || !isUserInfoValid(userInfo)) {
                 throw new URISyntaxException(userInfo, "User info is not valid");
             }
