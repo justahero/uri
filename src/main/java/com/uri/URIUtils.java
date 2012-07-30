@@ -6,7 +6,7 @@ import java.util.regex.Pattern;
 public class URIUtils {
     
     final static String  UnreservedChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~";
-    final static Pattern PercentEncodingPattern = Pattern.compile("(?:%([a-fA-F0-9]{2})*)");
+    final static Pattern PercentEncodingPattern = Pattern.compile("(?:%([a-fA-F0-9]{2}))");
     
     public static String removePercentEncodedCharacters(String url) {
         StringBuilder result = new StringBuilder(url);
