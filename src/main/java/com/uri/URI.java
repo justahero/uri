@@ -6,78 +6,165 @@ import java.util.regex.Pattern;
 
 public class URI {
     
-    private final static String  RegExScheme = "^([a-zA-z]+[a-zA-z+-.]*):";
-    private final static String  RegExAuthority = "";
+    private final static String RegExUserInfo  = "([a-zA-Z0-9-._~!$&'()*+,;=:]|%[0-9a-fA-F]{2})+";
+    private final static String RegExNamedHost = "(?:([a-zA-Z0-9-._~!$&'()*+,;=]|%[0-9a-fA-F]{2})*)?";
+    private final static String RegExPort      = "([0-9]{1,5})";
     
-    private final static Pattern SchemePattern;
-    private final static Pattern AuthorityPattern;
+    private final static String RegExURI =
+          "^([a-zA-Z]+[a-zA-Z+-.]*):" +
+          "\\/\\/" +
+          "(?:(.*)@)?" +
+          "(?:([a-zA-Z0-9-._~%]+)|(?:\\[(.+)\\])|(?:\\[v(.+)\\]))" +
+          "(?::([0-9]+))?" +
+          "(?:(\\/[a-zA-Z0-9-._~%!$&'()*+,;=:@]*))?";
     
-    private final static char[] RESERVED;
-    private final static char[] GEN_DELIMITERS = { ':', '/', '?', '#', '[', ']', '@' };
-    private final static char[] SUB_DELIMITERS = { '!', '$', '&', '\'', '(', ')', '*', '+', ',', ';', '=' };
+    private final static Pattern URIPattern;
+    private final static Pattern UserInfoPattern;
+    private final static Pattern HostPattern;
+    private final static Pattern PortPattern;
     
     private String scheme    = "";
-    
-    // authority component
-    private String authority = "";
+    private String username  = "";
+    private String userpass  = "";
     private String host      = "";
-    private String user      = "";
-    private String password  = "";
-    private int port         = -1;
-    
+    private String port      = "";
     private String path      = "";
-    private String fragment  = "";
+    
+    private StringBuilder remaining = new StringBuilder();
     
     static {
-        RESERVED = new char[GEN_DELIMITERS.length + SUB_DELIMITERS.length];
-        int i = 0;
-        for (char c : GEN_DELIMITERS) {
-            RESERVED[i++] = c;
-        }
-        for (char c : SUB_DELIMITERS) {
-            RESERVED[i++] = c;
-        }
-        
-        SchemePattern = Pattern.compile(RegExScheme);
-        AuthorityPattern = Pattern.compile(RegExAuthority);
+        URIPattern      = Pattern.compile(RegExURI);
+        UserInfoPattern = Pattern.compile(RegExUserInfo);
+        HostPattern     = Pattern.compile(RegExNamedHost);
+        PortPattern     = Pattern.compile(RegExPort);
     }
     
     public URI(String url) throws URISyntaxException {
-        scheme = parseScheme(url);
-        parseAuthority(url);
-    }
-    
-    public String host() {
-        return this.authority;
+        remaining.append(URIUtils.removePercentEncodedCharacters(url.toLowerCase()));
+        parseURI(remaining);
+        if (remaining.length() > 0) {
+            throw new URISyntaxException(url, "Some components could not be parsed!");
+        }
     }
     
     public String scheme() {
-        return this.scheme;
+        return scheme;
+    }
+    
+    public String username() {
+        return username;
+    }
+    
+    public String userpass() {
+        return userpass;
+    }
+    
+    public String host() {
+        return host;
+    }
+    
+    public String port() {
+        return port;
     }
     
     public String path() {
-        return this.path;
+        return path;
     }
     
-    public String fragment() {
-        return this.fragment;
-    }
-    
-    public int port() {
-        return this.port;
-    }
-    
-    private String parseScheme(String url) throws URISyntaxException {
-        Matcher matcher = SchemePattern.matcher(url);
+    private void parseURI(StringBuilder url) throws URISyntaxException {
+        System.out.println("Parsing uri: " + url);
+        Matcher matcher = URIPattern.matcher(url);
         if (matcher.find()) {
-            return matcher.group(1);
+            for (int i = 1; i < matcher.groupCount(); i++) {
+                System.out.println("  " + i + ": " + matcher.group(i));
+            }
+            
+            String scheme    = matcher.group(1);
+            String userInfo  = matcher.group(2);
+            String namedHost = matcher.group(3);
+            String ipv6Host  = matcher.group(4);
+            String ipFuture  = matcher.group(5);
+            String port      = matcher.group(6);
+            String path      = matcher.group(7);
+            
+            parseScheme(scheme);
+            parseUserInfo(userInfo);
+            parseHost(namedHost, ipv6Host, ipFuture);
+            parsePort(port);
+            parsePath(path);
+            
+            url.delete(matcher.start(), matcher.end());
         }
-        throw new URISyntaxException(url, "No valid scheme");
     }
     
-    public static String parseAuthority(String url) {
-        return "";
+    private void parseScheme(String scheme) throws URISyntaxException {
+        if (scheme == null || scheme.isEmpty()) {
+            throw new URISyntaxException(scheme, "No valid scheme");
+        }
+        this.scheme = scheme;
     }
+    
+    private void parseUserInfo(String userInfo) throws URISyntaxException {
+        if (userInfo != null) {
+            if (userInfo.isEmpty()) {
+                throw new URISyntaxException(userInfo, "User info must be specified if '@' is present");
+            }
+            String[] parts = userInfo.split(":", -1);
+            if (parts.length > 2 || parts[0].isEmpty() || !isUserInfoValid(userInfo)) {
+                throw new URISyntaxException(userInfo, "User info is not valid");
+            }
+            username = parts[0];
+            userpass = (parts.length > 1) ? parts[1] : "";
+        }
+    }
+    
+    private boolean isUserInfoValid(String userInfo) {
+        Matcher matcher = UserInfoPattern.matcher(userInfo);
+        return matcher.matches();
+    }
+    
+    private void parseHost(String namedHost, String ipV6Host, String ipFuture) throws URISyntaxException {
+        if (namedHost != null) {
+            host = parseNamedHost(namedHost);
+        } else if (ipV6Host != null) {
+            host = parseIpV6Host(ipV6Host);
+        } else {
+            throw new URISyntaxException("", "No valid host found");
+        }
+    }
+    
+    private String parseNamedHost(String namedHost) throws URISyntaxException {
+        Matcher matcher = HostPattern.matcher(namedHost);
+        if (!matcher.matches()) {
+            throw new URISyntaxException(namedHost, "Host is not valid");
+        }
+        return namedHost;
+    }
+    
+    private String parseIpV6Host(String ipV6Host) {
+        return ipV6Host.toUpperCase();
+    }
+    
+    private void parsePort(String port) throws URISyntaxException {
+        if (port == null)
+            return;
+        
+        Matcher matcher = PortPattern.matcher(port);
+        if (!matcher.matches()) {
+            throw new URISyntaxException(port, "Invalid port");
+        }
+        int portNumber = Integer.valueOf(port);
+        if (portNumber < 1 || portNumber > 65535) {
+            throw new URISyntaxException(port, "Invalid port number");
+        }
+        this.port = port;
+    }
+    
+    private void parsePath(String path) {
+        if (path != null) {
+            this.path = path;
+        }
+    }
+    
 }
-
 

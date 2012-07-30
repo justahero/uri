@@ -1,7 +1,7 @@
-URI Encoder
+URI Parser
 ===========
 
-The URI Encoder is based on the [RFC 3986](http://www.ietf.org/rfc/rfc3986.txt).
+The URI Parser is based on the [RFC 3986](http://www.ietf.org/rfc/rfc3986.txt).
 
 The specification uses the Augmented Backus-Naur Form (ABNF) (see [RFC 2234](http://www.ietf.org/rfc/rfc2234.txt)) for
 Syntax Specification (see section 1.3 of RFC 3986)
@@ -82,16 +82,53 @@ Components:
 * path can be empty (no characters)
 
 
-
 #### Scheme (3.1)
 
     Scheme = ALPHA *( ALPHA || DIGIT || '+' || '-' || '.' )
     [a-zA-Z]+[a-zA-Z0-9+.-]*
 
+
 #### Authority (3.2)
 
     Authority = [ userinfo "@" ] host [ ":" port ]
     User Info
+
+User info can be omitted but when present must be delimited by a '@' sign.
+The following examples show valid user infos
+
+    http://foo@example.com
+    http://foo:@example.com
+    http://foo:bar@example.com
+
+The following are not allowed:
+
+    http://@example.com
+    http://test:bar:foo@example.com
+    http://:pass@example.com
+
+
+#### Host (3.3)
+
+    host = IP-literal / IPv4Address / reg-name
+
+> A host identified by an Internet Protocol literal address, version 6
+> [RFC3513] or later, is distinguished by enclosing the IP literal
+> within square brackets ("[" and "]").  This is the only place where
+> square bracket characters are allowed in the URI syntax.
+
+This seems to contradict the fact that square brackets as parts of the generic delimiters
+are allowed in the Query subcomponent.
+
+* host is case-insensitive
+* percent encoded octets upper case letters (A-F)
+
+
+IPv6Address
+
+    x:x:x:x:x:x:x:x
+
+each component is a 16 bit hexadecimal value.
+
 
 
 References
@@ -119,3 +156,9 @@ A few discussions on URL encoding in Java
 * [Addressable](https://github.com/sporkmonger/addressable) Ruby gem, based on RFC 3986
 * [URI Validation / Parsing](http://snipplr.com/view/6889/) - Regular Expressions
 * [Google API Java Client API](http://javadoc.google-api-java-client.googlecode.com/hg/1.0.10-alpha/index.html)
+
+
+### Test cases and validation examples
+
+* [Addressable RSpec Suite](https://github.com/Sporkmonger/Addressable/blob/master/spec/addressable/uri_spec.rb)
+* [W3 URI Testing](http://www.w3.org/2004/04/uri-rel-test.html)
