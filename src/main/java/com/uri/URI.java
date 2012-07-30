@@ -6,20 +6,19 @@ import java.util.regex.Pattern;
 
 public class URI {
     
-    private final static String RegExScheme    = "^([a-zA-z]+[a-zA-z+-.]*):";
     private final static String RegExUserInfo  = "([a-zA-Z0-9-._~!$&'()*+,;=:]|%[0-9a-fA-F]{2})+";
     private final static String RegExNamedHost = "(?:([a-zA-Z0-9-._~!$&'()*+,;=]|%[0-9a-fA-F]{2})*)?";
     private final static String RegExPort      = "([0-9]{1,5})";
     
-    private final static String RegExAuthority =
+    private final static String RegExURI =
+          "^([a-zA-Z]+[a-zA-Z+-.]*):" +
           "\\/\\/" +
           "(?:(.*)@)?" +
           "(?:([a-zA-Z0-9-._~%]+)|(?:\\[(.+)\\])|(?:\\[v(.+)\\]))" +
           "(?::([0-9]+))?" +
           "(?:(\\/[a-zA-Z0-9-._~%!$&'()*+,;=:@]*))?";
     
-    private final static Pattern SchemePattern;
-    private final static Pattern AuthorityPattern;
+    private final static Pattern URIPattern;
     private final static Pattern UserInfoPattern;
     private final static Pattern HostPattern;
     private final static Pattern PortPattern;
@@ -34,17 +33,15 @@ public class URI {
     private StringBuilder remaining = new StringBuilder();
     
     static {
-        SchemePattern    = Pattern.compile(RegExScheme);
-        AuthorityPattern = Pattern.compile(RegExAuthority);
-        UserInfoPattern  = Pattern.compile(RegExUserInfo);
-        HostPattern      = Pattern.compile(RegExNamedHost);
-        PortPattern      = Pattern.compile(RegExPort);
+        URIPattern      = Pattern.compile(RegExURI);
+        UserInfoPattern = Pattern.compile(RegExUserInfo);
+        HostPattern     = Pattern.compile(RegExNamedHost);
+        PortPattern     = Pattern.compile(RegExPort);
     }
     
     public URI(String url) throws URISyntaxException {
         remaining.append(URIUtils.removePercentEncodedCharacters(url.toLowerCase()));
-        parseScheme(remaining);
-        parseAuthority(remaining);
+        parseURI(remaining);
         if (remaining.length() > 0) {
             throw new URISyntaxException(url, "Some components could not be parsed!");
         }
@@ -74,35 +71,23 @@ public class URI {
         return path;
     }
     
-    private void parseScheme(StringBuilder url) throws URISyntaxException {
-        System.out.println("Parsing scheme: " + url);
-        Matcher matcher = SchemePattern.matcher(url);
-        if (matcher.find()) {
-            scheme = matcher.group(1);
-            url.delete(matcher.start(0), matcher.end(0));
-        } else {
-            throw new URISyntaxException(url.toString(), "No valid scheme");
-        }
-        if (url.length() == 0) {
-            throw new URISyntaxException(url.toString(), "No remaining part");
-        }
-    }
-    
-    private void parseAuthority(StringBuilder url) throws URISyntaxException {
-        System.out.println("Parsing authorinty: " + url);
-        Matcher matcher = AuthorityPattern.matcher(url);
+    private void parseURI(StringBuilder url) throws URISyntaxException {
+        System.out.println("Parsing uri: " + url);
+        Matcher matcher = URIPattern.matcher(url);
         if (matcher.find()) {
             for (int i = 1; i < matcher.groupCount(); i++) {
                 System.out.println("  " + i + ": " + matcher.group(i));
             }
             
-            String userInfo  = matcher.group(1);
-            String namedHost = matcher.group(2);
-            String ipv6Host  = matcher.group(3);
-            String ipFuture  = matcher.group(4);
-            String port      = matcher.group(5);
-            String path      = matcher.group(6);
+            String scheme    = matcher.group(1);
+            String userInfo  = matcher.group(2);
+            String namedHost = matcher.group(3);
+            String ipv6Host  = matcher.group(4);
+            String ipFuture  = matcher.group(5);
+            String port      = matcher.group(6);
+            String path      = matcher.group(7);
             
+            parseScheme(scheme);
             parseUserInfo(userInfo);
             parseHost(namedHost, ipv6Host, ipFuture);
             parsePort(port);
@@ -110,6 +95,13 @@ public class URI {
             
             url.delete(matcher.start(), matcher.end());
         }
+    }
+    
+    private void parseScheme(String scheme) throws URISyntaxException {
+        if (scheme == null || scheme.isEmpty()) {
+            throw new URISyntaxException(scheme, "No valid scheme");
+        }
+        this.scheme = scheme;
     }
     
     private void parseUserInfo(String userInfo) throws URISyntaxException {

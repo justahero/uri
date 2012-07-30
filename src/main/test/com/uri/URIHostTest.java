@@ -18,6 +18,11 @@ public class URIHostTest {
     }
     
     @Test
+    public void namedHostWithInvalidFormat() throws URISyntaxException {
+        URIAssert.exception("http://<test>");
+    }
+    
+    @Test
     public void namedHostWithUpperCaseLetters() throws URISyntaxException {
         URIAssert.host("http://www.EXAMPLE.cOm", "www.example.com");
     }
