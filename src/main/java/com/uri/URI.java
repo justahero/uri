@@ -24,14 +24,14 @@ public class URI {
     private final static Pattern HostPattern;
     private final static Pattern PortPattern;
     
-    private String scheme    = "";
-    private String username  = "";
-    private String userpass  = "";
-    private String host      = "";
-    private String port      = "";
-    private String path      = "";
-    private String query     = "";
-    private String fragment  = "";
+    private String scheme    = null;
+    private String username  = null;
+    private String userpass  = null;
+    private String host      = null;
+    private String port      = null;
+    private String path      = null;
+    private String query     = null;
+    private String fragment  = null;
     
     static {
         URIPattern      = Pattern.compile(RegExURI);
@@ -112,7 +112,7 @@ public class URI {
         if (username != null && userpass != null && !username.isEmpty()) {
             String.format("%s:%s", username, userpass);
         }
-        return "";
+        return null;
     }
     
     public String host() {
@@ -131,21 +131,19 @@ public class URI {
         return query;
     }
     
-    private String fragment() {
+    public String fragment() {
         return fragment;
     }
-
+    
     // TODO create a valid representation of the URI as ASCII!
     public String toASCII() {
         StringBuilder builder = new StringBuilder();
-        if (scheme != null && !scheme.isEmpty()) {
-            builder.append(scheme).append("://");
-        }
-        builder.append(userinfo());
-        builder.append(host());
-        builder.append(path());
-        builder.append(query());
-        builder.append(fragment());
+        builder.append(scheme != null ? scheme + "://" : "");
+        builder.append(userinfo() != null ? userinfo() : "");
+        builder.append(host != null ? host : "");
+        builder.append(path != null ? path : "");
+        builder.append(query != null ? query : "");
+        builder.append(fragment != null ? fragment : "");
         return builder.toString();
     }
     

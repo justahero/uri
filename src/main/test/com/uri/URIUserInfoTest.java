@@ -52,7 +52,7 @@ public class URIUserInfoTest {
     
     @Test
     public void userNameAndPassAreEmptyWhenUserInfoNotGiven() throws URISyntaxException {
-        URIAssert.user("http://www.foobar.com", "", "");
+        URIAssert.user("http://www.foobar.com", null, null);
     }
 
 }

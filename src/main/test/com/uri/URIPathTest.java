@@ -13,6 +13,6 @@ public class URIPathTest {
     
     @Test
     public void urlWithoutPath() throws URISyntaxException {
-        URIAssert.path("http://test.de", "");
+        URIAssert.path("http://test.de", null);
     }
 }

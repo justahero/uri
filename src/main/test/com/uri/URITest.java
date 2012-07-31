@@ -9,6 +9,18 @@ import org.junit.Test;
 public class URITest {
     
     @Test
+    public void emptyWhenCreated() {
+        URI uri = new URI();
+        Assert.assertEquals(null, uri.scheme());
+        Assert.assertEquals(null, uri.userinfo());
+        Assert.assertEquals(null, uri.host());
+        Assert.assertEquals(null, uri.port());
+        Assert.assertEquals(null, uri.path());
+        Assert.assertEquals(null, uri.query());
+        Assert.assertEquals(null, uri.fragment());
+    }
+    
+    @Test
     public void constructsURIWithScheme() throws URISyntaxException {
         Assert.assertEquals("http", new URI().withScheme("http").scheme());
         Assert.assertEquals("ftp", new URI().withScheme("ftp").scheme());
@@ -17,6 +29,12 @@ public class URITest {
     @Test
     public void constructsURIWithHost() throws URISyntaxException {
         Assert.assertEquals("example.com", new URI().withHost("example.com").host());
+    }
+    
+    @Test
+    public void constructURIWithRepeatedScheme() throws URISyntaxException {
+        URI uri = new URI().withScheme("mailto").withScheme("http").withScheme("ftp");
+        Assert.assertEquals("ftp", uri.scheme());
     }
     
     @Test
