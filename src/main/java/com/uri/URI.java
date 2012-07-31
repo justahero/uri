@@ -68,7 +68,7 @@ public class URI {
     }
     
     public URI withPath(String path) throws URISyntaxException {
-        parsePath(path);
+        parsePath(path.startsWith("/") ? path : "/" + path);
         return this;
     }
     
@@ -77,12 +77,11 @@ public class URI {
         return this;
     }
     
-    public static URI fromString(String url) throws URISyntaxException {
+    public static URI parse(String url) throws URISyntaxException {
         return new URI(url);
     }
     
-    public static URI fromURL(URL url) throws URISyntaxException {
-        //return new URI();
+    public static URI parseURL(URL url) throws URISyntaxException {
         URI uri = new URI()
                 .withScheme(url.getProtocol())
                 .withUserInfo(url.getUserInfo())
@@ -150,10 +149,8 @@ public class URI {
         return builder.toString();
     }
     
-    // TODO replace StringBuilder with String
     private void parseURI(String string) throws URISyntaxException {
         System.out.println("Parsing uri: " + string);
-        boolean parsed = false;
         Matcher matcher = URIPattern.matcher(string);
         if (matcher.find()) {
             for (int i = 1; i < matcher.groupCount(); i++) {
@@ -174,10 +171,11 @@ public class URI {
             parsePort(port);
             parsePath(path);
             
-            System.out.println("start: " + matcher.start() + " end: " + matcher.end());
-            parsed = (string.length() == (matcher.end() - matcher.start()));
+            if (matcher.end() != string.length()) {
+                throw new URISyntaxException(string, "Some components could not be parsed!");
+            }
         }
-        if (!parsed) {
+        else {
             throw new URISyntaxException(string, "Some components could not be parsed!");
         }
     }
@@ -256,6 +254,5 @@ public class URI {
             this.query = query;
         }
     }
-
 }
 
