@@ -1,6 +1,7 @@
 package com.uri;
 
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -29,8 +30,8 @@ public class URI {
     private String host      = "";
     private String port      = "";
     private String path      = "";
-    
-    private StringBuilder remaining = new StringBuilder();
+    private String query     = "";
+    private String fragment  = "";
     
     static {
         URIPattern      = Pattern.compile(RegExURI);
@@ -39,12 +40,61 @@ public class URI {
         PortPattern     = Pattern.compile(RegExPort);
     }
     
-    public URI(String url) throws URISyntaxException {
-        remaining.append(URIUtils.removePercentEncodedCharacters(url.toLowerCase()));
-        parseURI(remaining);
-        if (remaining.length() > 0) {
-            throw new URISyntaxException(url, "Some components could not be parsed!");
-        }
+    public URI() {
+    }
+    
+    public URI withHost(String host) throws URISyntaxException {
+        parseHost(host, null, null);
+        return this;
+    }
+    
+    public URI withUserInfo(String userInfo) throws URISyntaxException {
+        parseUserInfo(userInfo);
+        return this;
+    }
+    
+    public URI withUserInfo(String username, String userpass) throws URISyntaxException {
+        return withUserInfo(String.format("%s:%s", username, userpass));
+    }
+    
+    public URI withScheme(String scheme) throws URISyntaxException {
+        parseScheme(scheme);
+        return this;
+    }
+    
+    public URI withPort(int port) throws URISyntaxException {
+        parsePort("" + port); // TODO check port before!
+        return this;
+    }
+    
+    public URI withPath(String path) throws URISyntaxException {
+        parsePath(path);
+        return this;
+    }
+    
+    private URI withQuery(String query) {
+        parseQuery(query);
+        return this;
+    }
+    
+    public static URI fromString(String url) throws URISyntaxException {
+        return new URI(url);
+    }
+    
+    public static URI fromURL(URL url) throws URISyntaxException {
+        //return new URI();
+        URI uri = new URI()
+                .withScheme(url.getProtocol())
+                .withUserInfo(url.getUserInfo())
+                .withHost(url.getHost())
+                .withPort(url.getPort())
+                .withPath(url.getPath())
+                .withQuery(url.getQuery());
+        return uri;
+    }
+    
+    private URI(String url) throws URISyntaxException {
+        parseURI(URIUtils.removePercentEncodedCharacters(url.toLowerCase()));
     }
     
     public String scheme() {
@@ -59,6 +109,13 @@ public class URI {
         return userpass;
     }
     
+    public String userinfo() {
+        if (username != null && userpass != null && !username.isEmpty()) {
+            String.format("%s:%s", username, userpass);
+        }
+        return "";
+    }
+    
     public String host() {
         return host;
     }
@@ -71,9 +128,33 @@ public class URI {
         return path;
     }
     
-    private void parseURI(StringBuilder url) throws URISyntaxException {
-        System.out.println("Parsing uri: " + url);
-        Matcher matcher = URIPattern.matcher(url);
+    public String query() {
+        return query;
+    }
+    
+    private String fragment() {
+        return fragment;
+    }
+
+    // TODO create a valid representation of the URI as ASCII!
+    public String toASCII() {
+        StringBuilder builder = new StringBuilder();
+        if (scheme != null && !scheme.isEmpty()) {
+            builder.append(scheme).append("://");
+        }
+        builder.append(userinfo());
+        builder.append(host());
+        builder.append(path());
+        builder.append(query());
+        builder.append(fragment());
+        return builder.toString();
+    }
+    
+    // TODO replace StringBuilder with String
+    private void parseURI(String string) throws URISyntaxException {
+        System.out.println("Parsing uri: " + string);
+        boolean parsed = false;
+        Matcher matcher = URIPattern.matcher(string);
         if (matcher.find()) {
             for (int i = 1; i < matcher.groupCount(); i++) {
                 System.out.println("  " + i + ": " + matcher.group(i));
@@ -93,7 +174,11 @@ public class URI {
             parsePort(port);
             parsePath(path);
             
-            url.delete(matcher.start(), matcher.end());
+            System.out.println("start: " + matcher.start() + " end: " + matcher.end());
+            parsed = (string.length() == (matcher.end() - matcher.start()));
+        }
+        if (!parsed) {
+            throw new URISyntaxException(string, "Some components could not be parsed!");
         }
     }
     
@@ -166,5 +251,11 @@ public class URI {
         }
     }
     
+    private void parseQuery(String query) {
+        if (query != null) {
+            this.query = query;
+        }
+    }
+
 }
 

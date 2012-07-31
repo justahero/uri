@@ -2,9 +2,52 @@ package com.uri;
 
 import java.net.URISyntaxException;
 
+import junit.framework.Assert;
+
 import org.junit.Test;
 
 public class URITest {
+    
+    @Test
+    public void canConstructURIFromSchemeAndHostName() throws URISyntaxException {
+        URI uri = new URI().withScheme("http").withHost("example.com");
+        Assert.assertEquals("http", uri.scheme());
+        Assert.assertEquals("example.com", uri.host());
+    }
+    
+    @Test
+    public void canConstructURIWithScheme() throws URISyntaxException {
+        URI uri = new URI().withScheme("ftp");
+        Assert.assertEquals("ftp", uri.scheme());
+    }
+    
+   /*
+describe Addressable::URI, "when created from string components" do
+  before do
+    @uri = Addressable::URI.new(
+      :scheme => "http", :host => "example.com"
+    )
+  end
+
+  it "should have a site value of 'http://example.com'" do
+    @uri.site.should == "http://example.com"
+  end
+
+  it "should be equal to the equivalent parsed URI" do
+    @uri.should == Addressable::URI.parse("http://example.com")
+  end
+
+  it "should raise an error if invalid components omitted" do
+    (lambda do
+      @uri.omit(:bogus)
+    end).should raise_error(ArgumentError)
+    (lambda do
+      @uri.omit(:scheme, :bogus, :path)
+    end).should raise_error(ArgumentError)
+  end
+end
+
+    */
     
     @Test
     public void hostWithPercentEncodedCharacters() throws URISyntaxException {
