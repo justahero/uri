@@ -108,9 +108,9 @@ public class URITest {
     
     @Test
     public void constructsWithSchemeAndHost() throws URISyntaxException {
-        URI uri = new URI().withScheme("http").withScheme("example.com");
+        URI uri = new URI().withScheme("http").withHost("example.com");
         Assert.assertEquals("http://example.com", uri.toASCII());
-        Assert.assertEquals(uri.toASCII(), URI.parse("http://example.com"));
+        Assert.assertEquals(uri.toASCII(), URI.parse("http://example.com").toASCII());
     }
     
     @Test
