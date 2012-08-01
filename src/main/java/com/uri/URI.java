@@ -162,7 +162,7 @@ public class URI {
         builder.append(host != null ? host : "");
         builder.append(path != null ? path : "");
         builder.append(query != null ? query : "");
-        builder.append(fragment != null ? fragment : "");
+        builder.append(fragment != null ? "#" + fragment : "");
         
         String uri = builder.toString();
         Matcher matcher = URIPattern.matcher(uri);
