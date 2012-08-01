@@ -103,7 +103,7 @@ public class URITest {
     
     @Test(expected=URISyntaxException.class)
     public void throwsExceptionWithOnlyUserInfoAndPort() throws URISyntaxException {
-        new URI().withUserInfo("user", "pass").withPort(80);
+        new URI().withUserInfo("user", "pass").withPort(80).toASCII();
     }
     
     @Test
