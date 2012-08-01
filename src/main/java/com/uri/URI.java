@@ -11,8 +11,10 @@ public class URI {
     private final static String RegExNamedHost = "(?:([a-zA-Z0-9-._~!$&'()*+,;=]|%[0-9a-fA-F]{2})*)?";
     private final static String RegExPort      = "([0-9]{1,5})";
     
+    private final static String RegExScheme    = "^([a-zA-Z]+[a-zA-Z+-.]*)"; 
+    
     private final static String RegExURI =
-          "^([a-zA-Z]+[a-zA-Z+-.]*):" +
+          RegExScheme + ":" +
           "\\/\\/" +
           "(?:(.*)@)?" +
           "(?:([a-zA-Z0-9-._~%]+)|(?:\\[(.+)\\])|(?:\\[v(.+)\\]))" +
@@ -23,6 +25,7 @@ public class URI {
     private final static Pattern UserInfoPattern;
     private final static Pattern HostPattern;
     private final static Pattern PortPattern;
+    private final static Pattern SchemePattern;
     
     private String scheme    = null;
     private String username  = null;
@@ -38,6 +41,7 @@ public class URI {
         UserInfoPattern = Pattern.compile(RegExUserInfo);
         HostPattern     = Pattern.compile(RegExNamedHost);
         PortPattern     = Pattern.compile(RegExPort);
+        SchemePattern   = Pattern.compile(RegExScheme);
     }
     
     public URI() {
@@ -189,6 +193,10 @@ public class URI {
     
     private void parseScheme(String scheme) throws URISyntaxException {
         if (scheme == null || scheme.isEmpty()) {
+            throw new URISyntaxException(scheme, "No scheme given");
+        }
+        Matcher matcher = SchemePattern.matcher(scheme);
+        if (!matcher.matches()) {
             throw new URISyntaxException(scheme, "No valid scheme");
         }
         this.scheme = scheme;

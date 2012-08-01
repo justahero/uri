@@ -62,8 +62,8 @@ public class URITest {
     }
     
     @Test(expected=URISyntaxException.class)
-    public void hostWithAllNumbersThrowsException() throws URISyntaxException {
-        new URI().withHost("1234");
+    public void schemeWithAllNumbersThrowsException() throws URISyntaxException {
+        new URI().withScheme("1234");
     }
     
     @Test
@@ -133,7 +133,6 @@ public class URITest {
         Assert.assertEquals("path", uri.path());
         Assert.assertEquals("http:", uri.site());
     }
-    
     
     @Test
     public void hostTransformsToPercentEncodedLowerCaseCharacters() throws URISyntaxException {
