@@ -14,12 +14,14 @@ public class URI {
     private final static String RegExScheme    = "^([a-zA-Z]+[a-zA-Z+-.]*)"; 
     
     private final static String RegExURI =
+          "\\A" +
           RegExScheme + ":" +
           "\\/\\/" +
-          "(?:(.*)@)?" +
+          "(?:([a-zA-Z0-9-._%!$&'()*+,;=:]+)@)?" +
           "(?:([a-zA-Z0-9-._~%]+)|(?:\\[(.+)\\])|(?:\\[v(.+)\\]))" +
           "(?::([0-9]+))?" +
-          "(?:(\\/[a-zA-Z0-9-._~%!$&'()*+,;=:@]*))?";
+          "(?:(\\/[a-zA-Z0-9-._~%!$&'()*+,;=:@]*))?" +
+          "\\Z";
     
     private final static Pattern URIPattern;
     private final static Pattern UserInfoPattern;
@@ -58,7 +60,10 @@ public class URI {
     }
     
     public URI withUserInfo(String username, String userpass) throws URISyntaxException {
-        return withUserInfo(String.format("%s:%s", username, userpass));
+        String userinfo = "";
+        userinfo += (username != null) ? username : "";
+        userinfo += (userpass != null) ? ":" + userpass : "";
+        return withUserInfo(userinfo);
     }
     
     public URI withScheme(String scheme) throws URISyntaxException {
@@ -149,15 +154,22 @@ public class URI {
     }
     
     // TODO create a valid representation of the URI as ASCII!
-    public String toASCII() {
+    public String toASCII() throws URISyntaxException {
         StringBuilder builder = new StringBuilder();
         builder.append(scheme != null ? scheme + "://" : "");
-        builder.append(userinfo() != null ? userinfo() : "");
+        String userinfo = userinfo();
+        builder.append(userinfo != null ? userinfo : "");
         builder.append(host != null ? host : "");
         builder.append(path != null ? path : "");
         builder.append(query != null ? query : "");
         builder.append(fragment != null ? fragment : "");
-        return builder.toString();
+        
+        String uri = builder.toString();
+        Matcher matcher = URIPattern.matcher(uri);
+        if (!matcher.find()) {
+            throw new URISyntaxException(uri, "URI representation is not valid!"); 
+        }
+        return uri;
     }
     
     private void parseURI(String string) throws URISyntaxException {
