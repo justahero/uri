@@ -48,7 +48,7 @@ public class URI {
         return this;
     }
     
-    public URI withUserInfo(String userInfo) throws URISyntaxException {
+    private URI withUserInfo(String userInfo) throws URISyntaxException {
         parseUserInfo(userInfo);
         return this;
     }
@@ -74,6 +74,11 @@ public class URI {
     
     private URI withQuery(String query) {
         parseQuery(query);
+        return this;
+    }
+    
+    public URI withFragment(String fragment) {
+        parseFragment(fragment);
         return this;
     }
     
@@ -133,6 +138,10 @@ public class URI {
     
     public String fragment() {
         return fragment;
+    }
+    
+    public String site() {
+        return "";
     }
     
     // TODO create a valid representation of the URI as ASCII!
@@ -250,6 +259,12 @@ public class URI {
     private void parseQuery(String query) {
         if (query != null) {
             this.query = query;
+        }
+    }
+    
+    private void parseFragment(String fragment) {
+        if (fragment != null) {
+            this.fragment = fragment;
         }
     }
 }

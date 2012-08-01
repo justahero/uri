@@ -51,6 +51,21 @@ public class URITest {
         Assert.assertEquals("/test", uri.path());
     }
     
+    @Test(expected=URISyntaxException.class)
+    public void hostWithInvalidCharactersThrowsException() throws URISyntaxException {
+        new URI().withHost("<invalid>");
+    }
+    
+    @Test(expected=URISyntaxException.class)
+    public void hostWithSpaceCharactersThrowsException() throws URISyntaxException {
+        new URI().withHost("\t \n");
+    }
+    
+    @Test(expected=URISyntaxException.class)
+    public void hostWithAllNumbersThrowsException() throws URISyntaxException {
+        new URI().withHost("1234");
+    }
+    
     @Test
     public void hostWithPercentEncodedCharacters() throws URISyntaxException {
         URIAssert.host("http://www.%74%65%73%74.com", "www.test.com");
@@ -71,19 +86,72 @@ public class URITest {
         URIAssert.exception("http://www.tes%%t.com");
     }
     
+    @Test(expected=URISyntaxException.class)
+    public void throwsExceptionWithOnlyUsername() throws URISyntaxException {
+        new URI().withUserInfo("username", null).toASCII();
+    }
+    
+    @Test(expected=URISyntaxException.class)
+    public void throwsExceptionWithOnlyUserpass() throws URISyntaxException {
+        new URI().withUserInfo(null, "userpass").toASCII();
+    }
+    
+    @Test(expected=URISyntaxException.class)
+    public void throwsExceptionWithOnlySchemeAndFragment() throws URISyntaxException {
+        new URI().withScheme("http").withFragment("fragment").toASCII();
+    }
+    
+    @Test(expected=URISyntaxException.class)
+    public void throwsExceptionWithOnlyUserInfoAndPort() throws URISyntaxException {
+        new URI().withUserInfo("user", "pass").withPort(80);
+    }
+    
+    @Test
+    public void constructsWithSchemeAndHost() throws URISyntaxException {
+        URI uri = new URI().withScheme("http").withScheme("example.com");
+        Assert.assertEquals("http://example.com", uri.toASCII());
+        Assert.assertEquals(uri.toASCII(), URI.parse("http://example.com"));
+    }
+    
+    @Test
+    public void constructsWithSchemeHostAndPath() throws URISyntaxException {
+        URI uri = new URI().withScheme("http").withHost("example.com").withPath("path");
+        Assert.assertEquals("http://example.com/path", uri.toASCII());
+    }
+    
+    @Test
+    public void constructsWithSchemeAndPath() throws URISyntaxException {
+        URI uri = new URI().withScheme("http").withPath("path");
+        Assert.assertEquals("http:path", uri.toASCII());
+    }
+    
+    @Test
+    public void parsesURIWithSchemeAndPath() throws URISyntaxException {
+        URI uri = URI.parse("http:path");
+        Assert.assertEquals("http:path", uri.toASCII());
+        Assert.assertEquals("http", uri.scheme());
+        Assert.assertEquals("path", uri.path());
+        Assert.assertEquals("http:", uri.site());
+    }
+    
+    
     @Test
     public void hostTransformsToPercentEncodedLowerCaseCharacters() throws URISyntaxException {
-        URIAssert.host("http://www.%66%6f%6f%62%61%72.com", "www.foobar.com");
+        URI uri = URI.parse("http://www.%66%6f%6f%62%61%72.com");
+        Assert.assertEquals("www.foobar.com", uri.host());
     }
     
     @Test
     public void transformPercentEncodedUpperCaseCharacters() throws URISyntaxException {
-        // => 'DBP'
-        URIAssert.host("http://www.%44%42%50.com", "www.dbp.com");
+        URI uri = URI.parse("http://www.%44%42%50.com"); // => 'DBP'
+        Assert.assertEquals("www.dbp.com", uri.host());
     }
     
     @Test
     public void noTransformOfPercentEncodedSpecialCharacters() throws URISyntaxException {
-        URIAssert.host("http://www.Test%7B%7D.com", "www.test%7B%7D.com");
+        URI uri = URI.parse("http://www.Test%7B%7D.com");
+        Assert.assertEquals("www.test%7B%7D.com", uri.host());
     }
 }
+
+
