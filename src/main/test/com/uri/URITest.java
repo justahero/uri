@@ -131,7 +131,7 @@ public class URITest {
         Assert.assertEquals("http:path", uri.toASCII());
         Assert.assertEquals("http", uri.scheme());
         Assert.assertEquals("path", uri.path());
-        Assert.assertEquals("http:", uri.site());
+        //Assert.assertEquals("http:", uri.site());
     }
     
     @Test

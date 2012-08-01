@@ -16,11 +16,17 @@ public class URI {
     private final static String RegExURI =
           "\\A" +
           RegExScheme + ":" +
+          "(?:" +
           "\\/\\/" +
           "(?:([a-zA-Z0-9-._%!$&'()*+,;=:]+)@)?" +
           "(?:([a-zA-Z0-9-._~%]+)|(?:\\[(.+)\\])|(?:\\[v(.+)\\]))" +
           "(?::([0-9]+))?" +
-          "(?:(\\/[a-zA-Z0-9-._~%!$&'()*+,;=:@]*))?" +
+          //"(?:\\/([a-zA-Z0-9-._~%!$&'()*+,;=:@]*))?" +
+          "(?:\\/([a-zA-Z0-9-._~%!$&'()*+,;=:@]*))?" +
+          "|" +
+          //"(\\/?(?:[a-z0-9-._~%!$&'()*+,;=:@])+(?:[a-z0-9-._~%!$&'()*+,;=:@\\/])*)?" +
+          "(\\/?[a-z0-9-._~%!$&'()*+,;=:@]+(\\/[a-z0-9-._~%!$&'()*+,;=:@]+)*/?)?"+
+          ")" +
           "\\Z";
     
     private final static Pattern URIPattern;
@@ -138,7 +144,10 @@ public class URI {
     }
     
     public String path() {
-        return path;
+        if (path != null) {
+            return (host != null) ? "/" + path : path;
+        }
+        return null;
     }
     
     public String query() {
@@ -153,14 +162,26 @@ public class URI {
         return "";
     }
     
+    public String authority() {
+        StringBuilder result = new StringBuilder();
+        String userinfo = userinfo();
+        result.append(userinfo != null ? userinfo : "");
+        result.append(host != null ? host : "");
+        result.append(port != null ? ":" + port : "");
+        return result.toString();
+    }
+    
     // TODO create a valid representation of the URI as ASCII!
     public String toASCII() throws URISyntaxException {
         StringBuilder builder = new StringBuilder();
-        builder.append(scheme != null ? scheme + "://" : "");
-        String userinfo = userinfo();
-        builder.append(userinfo != null ? userinfo : "");
-        builder.append(host != null ? host : "");
-        builder.append(path != null ? path : "");
+        builder.append(scheme != null ? scheme + ":" : "");
+        
+        String authority = authority();
+        if (!authority.isEmpty()) {
+            builder.append("//").append(authority);
+        }
+        
+        builder.append(path() != null ? path() : "");
         builder.append(query != null ? query : "");
         builder.append(fragment != null ? "#" + fragment : "");
         
