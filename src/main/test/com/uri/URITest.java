@@ -48,7 +48,7 @@ public class URITest {
     @Test
     public void constructsURIWithPath() throws URISyntaxException {
         URI uri = new URI().withPath("test");
-        Assert.assertEquals("/test", uri.path());
+        Assert.assertEquals("test", uri.path());
     }
     
     @Test(expected=URISyntaxException.class)

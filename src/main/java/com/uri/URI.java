@@ -10,7 +10,6 @@ public class URI {
     private final static String RegExUserInfo  = "([a-zA-Z0-9-._~!$&'()*+,;=:]|%[0-9a-fA-F]{2})+";
     private final static String RegExNamedHost = "(?:([a-zA-Z0-9-._~!$&'()*+,;=]|%[0-9a-fA-F]{2})*)?";
     private final static String RegExPort      = "([0-9]{1,5})";
-    
     private final static String RegExScheme    = "^([a-zA-Z]+[a-zA-Z+-.]*)"; 
     
     private final static String RegExURI =
@@ -21,10 +20,8 @@ public class URI {
           "(?:([a-zA-Z0-9-._%!$&'()*+,;=:]+)@)?" +
           "(?:([a-zA-Z0-9-._~%]+)|(?:\\[(.+)\\])|(?:\\[v(.+)\\]))" +
           "(?::([0-9]+))?" +
-          //"(?:\\/([a-zA-Z0-9-._~%!$&'()*+,;=:@]*))?" +
-          "(?:\\/([a-zA-Z0-9-._~%!$&'()*+,;=:@]*))?" +
+          "(?:(\\/[a-zA-Z0-9-._~%!$&'()*+,;=:@]*))?" +
           "|" +
-          //"(\\/?(?:[a-z0-9-._~%!$&'()*+,;=:@])+(?:[a-z0-9-._~%!$&'()*+,;=:@\\/])*)?" +
           "(\\/?[a-z0-9-._~%!$&'()*+,;=:@]+(\\/[a-z0-9-._~%!$&'()*+,;=:@]+)*/?)?"+
           ")" +
           "\\Z";
@@ -83,7 +80,8 @@ public class URI {
     }
     
     public URI withPath(String path) throws URISyntaxException {
-        parsePath(path.startsWith("/") ? path : "/" + path);
+        //parsePath(path.startsWith("/") ? path : "/" + path);
+        parsePath(path);
         return this;
     }
     
@@ -145,7 +143,8 @@ public class URI {
     
     public String path() {
         if (path != null) {
-            return (host != null) ? "/" + path : path;
+            //return (host != null) ? "/" + path : path;
+            return path;
         }
         return null;
     }
@@ -293,7 +292,7 @@ public class URI {
     
     private void parsePath(String path) {
         if (path != null) {
-            this.path = path;
+            this.path = (host != null) ? "/" + path : path;
         }
     }
     
