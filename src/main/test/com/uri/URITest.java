@@ -157,6 +157,74 @@ public class URITest {
         URI uri = URI.parse("http://www.Test%7B%7D.com");
         Assert.assertEquals("www.test%7B%7D.com", uri.host());
     }
+    
+    @Test
+    public void shouldParseURIWithSeveralSlashesInPath() throws URISyntaxException {
+        URI uri = URI.parse("http://example.com/rfc/rfc");
+        URIAssert.equals("/rfc/rfc", uri.path());
+    }
+    
+    @Test
+    public void shouldConstructURIWithSeveralSlashesInPath() throws URISyntaxException {
+        URI uri = new URI().withPath("/test/foo/bar");
+        URIAssert.equals("/test/foo/bar", uri.path());
+    }
+    
+    @Test
+    public void shouldParseFtpURICorrectly() throws URISyntaxException {
+        URI uri = URI.parse("ftp://ftp.is.co.za/rfc/");
+//        URI uri = URI.parse("ftp://ftp.is.co.za/rfc/rfc1808.txt");
+        URIAssert.equals("ftp", uri.scheme());
+        URIAssert.equals("ftp.is.co.za", uri.host());
+        URIAssert.equals("/rfc/rfc1808.txt", uri.path());
+        URIAssert.equals("21", uri.inferredPort());
+    }
+    public void shouldConstructFtpURICorrectly() {
+//        URI uri = new URI()
+//            .withScheme("ftp")
+//            .withHost()
+    }
+/*
+# Section 1.1.2 of RFC 3986
+describe Addressable::URI, "when parsed from " +
+    "'ftp://ftp.is.co.za/rfc/rfc1808.txt'" do
+  before do
+    @uri = Addressable::URI.parse("ftp://ftp.is.co.za/rfc/rfc1808.txt")
+  end
+
+  it "should use the 'ftp' scheme" do
+    @uri.scheme.should == "ftp"
+  end
+
+  it "should be considered to be ip-based" do
+    @uri.should be_ip_based
+  end
+
+  it "should have a host of 'ftp.is.co.za'" do
+    @uri.host.should == "ftp.is.co.za"
+  end
+
+  it "should have inferred_port of 21" do
+    @uri.inferred_port.should == 21
+  end
+
+  it "should have a path of '/rfc/rfc1808.txt'" do
+    @uri.path.should == "/rfc/rfc1808.txt"
+  end
+
+  it "should not have a request URI" do
+    @uri.request_uri.should == nil
+  end
+
+  it "should be considered to be in normal form" do
+    @uri.normalize.should be_eql(@uri)
+  end
+
+  it "should have an origin of 'ftp://ftp.is.co.za'" do
+    @uri.origin.should == 'ftp://ftp.is.co.za'
+  end
+end
+ */
 }
 
 

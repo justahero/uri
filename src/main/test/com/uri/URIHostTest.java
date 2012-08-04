@@ -29,7 +29,7 @@ public class URIHostTest {
     
     @Test
     public void namedHostWithPortNumber() throws URISyntaxException {
-        URIAssert.port("http://www.test.com:80", "80");
+        URIAssert.equals("80", URI.parse("http://www.test.com:80").port());
     }
     
     @Test
@@ -77,14 +77,14 @@ public class URIHostTest {
     
     @Test
     public void ipV6HostWithPort() throws URISyntaxException {
-        URIAssert.port("http://[1080:0:0:0:8:800:200C:417A]:4040", "4040");
-        URIAssert.host("http://[1080:0:0:0:8:800:200C:417A]:4040", "1080:0:0:0:8:800:200C:417A");
+        URIAssert.equals("4040", URI.parse("http://[1080:0:0:0:8:800:200C:417A]:4040").port());
+        URIAssert.equals("1080:0:0:0:8:800:200C:417A", URI.parse("http://[1080:0:0:0:8:800:200C:417A]:4040").host());
     }
     
     @Test
     public void ipV6HostWithPortAndPathSeparator() throws URISyntaxException {
-        URIAssert.port("http://[1080:0:0:0:8:800:200C:417A]:4040/test", "4040");
-        URIAssert.host("http://[1080:0:0:0:8:800:200C:417A]:8080/", "1080:0:0:0:8:800:200C:417A");
+        URIAssert.equals("4040", URI.parse("http://[1080:0:0:0:8:800:200C:417A]:4040/test").port());
+        URIAssert.equals("1080:0:0:0:8:800:200C:417A", URI.parse("http://[1080:0:0:0:8:800:200C:417A]:8080/").host());
     }
 }
 

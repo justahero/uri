@@ -2,10 +2,14 @@ package com.uri;
 
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class URI {
+    
+    private final static Map<String, Integer> DefaultPortMap = new HashMap<String, Integer>();
     
     private final static String RegExUserInfo  = "([a-zA-Z0-9-._~!$&'()*+,;=:]|%[0-9a-fA-F]{2})+";
     private final static String RegExNamedHost = "(?:([a-zA-Z0-9-._~!$&'()*+,;=]|%[0-9a-fA-F]{2})*)?";
@@ -47,6 +51,9 @@ public class URI {
         HostPattern     = Pattern.compile(RegExNamedHost);
         PortPattern     = Pattern.compile(RegExPort);
         SchemePattern   = Pattern.compile(RegExScheme);
+        
+        DefaultPortMap.put("ftp", 21);
+        DefaultPortMap.put("http", 80);
     }
     
     public URI() {
@@ -177,7 +184,6 @@ public class URI {
     
     public String path() {
         if (path != null) {
-            //return (host != null) ? "/" + path : path;
             return path;
         }
         return null;
@@ -214,6 +220,13 @@ public class URI {
         result.append(host != null ? host : "");
         result.append(port != null ? ":" + port : "");
         return result.toString();
+    }
+    
+    public String inferredPort() {
+        if (scheme != null && DefaultPortMap.containsKey(scheme)) {
+            return DefaultPortMap.get(scheme).toString();
+        }
+        return null;
     }
     
     // TODO create a valid representation of the URI as ASCII!
@@ -312,5 +325,6 @@ public class URI {
             this.fragment = fragment;
         }
     }
+    
 }
 
