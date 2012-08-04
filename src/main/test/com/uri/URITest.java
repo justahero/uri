@@ -9,7 +9,7 @@ import org.junit.Test;
 public class URITest {
     
     @Test
-    public void emptyWhenCreated() {
+    public void shouldHaveEmptyPropertiesWhenCreated() {
         URI uri = new URI();
         Assert.assertEquals(null, uri.scheme());
         Assert.assertEquals(null, uri.userinfo());
@@ -21,24 +21,24 @@ public class URITest {
     }
     
     @Test
-    public void constructsURIWithScheme() throws URISyntaxException {
+    public void shouldConstructURIWithScheme() throws URISyntaxException {
         Assert.assertEquals("http", new URI().withScheme("http").scheme());
         Assert.assertEquals("ftp", new URI().withScheme("ftp").scheme());
     }
     
     @Test
-    public void constructsURIWithHost() throws URISyntaxException {
+    public void shouldConstructURIWithHost() throws URISyntaxException {
         Assert.assertEquals("example.com", new URI().withHost("example.com").host());
     }
     
     @Test
-    public void constructURIWithRepeatedScheme() throws URISyntaxException {
+    public void shouldConstructURIWithRepeatedScheme() throws URISyntaxException {
         URI uri = new URI().withScheme("mailto").withScheme("http").withScheme("ftp");
         Assert.assertEquals("ftp", uri.scheme());
     }
     
     @Test
-    public void constructsURIWithSchemeAndHostName() throws URISyntaxException {
+    public void shouldConstructURIWithSchemeAndHost() throws URISyntaxException {
         URI uri = new URI().withScheme("http").withHost("example.com");
         Assert.assertEquals("http", uri.scheme());
         Assert.assertEquals("example.com", uri.host());
@@ -46,87 +46,87 @@ public class URITest {
     }
     
     @Test
-    public void constructsURIWithPath() throws URISyntaxException {
+    public void shouldConstructURIWithPath() throws URISyntaxException {
         URI uri = new URI().withPath("test");
         Assert.assertEquals("test", uri.path());
     }
     
     @Test(expected=URISyntaxException.class)
-    public void hostWithInvalidCharactersThrowsException() throws URISyntaxException {
+    public void shouldFailWithHostContainingInvalidCharacters() throws URISyntaxException {
         new URI().withHost("<invalid>");
     }
     
     @Test(expected=URISyntaxException.class)
-    public void hostWithSpaceCharactersThrowsException() throws URISyntaxException {
+    public void shouldFailWhenHostContainsSpaces() throws URISyntaxException {
         new URI().withHost("\t \n");
     }
     
     @Test(expected=URISyntaxException.class)
-    public void schemeWithAllNumbersThrowsException() throws URISyntaxException {
+    public void shouldFailWhenHostIsAllNumbers() throws URISyntaxException {
         new URI().withScheme("1234");
     }
     
     @Test
-    public void hostWithPercentEncodedCharacters() throws URISyntaxException {
+    public void shouldDecodeHostWithPercentEncodedCharacters() throws URISyntaxException {
         URIAssert.host("http://www.%74%65%73%74.com", "www.test.com");
     }
     
-    @Test
-    public void hostWithSingleDigitPercentEncodedCharacter() {
-        URIAssert.exception("http://www.ex%4.com");
-    }
-    
-    @Test
-    public void hostWithLetterInPercentEncodedOctet() {
-        URIAssert.exception("http://www.ex%er%01.com");
-    }
-    
-    @Test
-    public void hostWithDoublePercentageSigns() {
-        URIAssert.exception("http://www.tes%%t.com");
+    @Test(expected=URISyntaxException.class)
+    public void shouldFailWhenOnlySingleDigitInOctet() throws URISyntaxException {
+        URI.parse("http://www.ex%4.com");
     }
     
     @Test(expected=URISyntaxException.class)
-    public void throwsExceptionWithOnlyUsername() throws URISyntaxException {
+    public void shouldFailedWithInvalidLetterInOctet() throws URISyntaxException {
+        URI.parse("http://www.ex%er%01.com");
+    }
+    
+    @Test(expected=URISyntaxException.class)
+    public void shouldFailedWithDoublePercentageSigns() throws URISyntaxException {
+        URI.parse("http://www.tes%%t.com");
+    }
+    
+    @Test(expected=URISyntaxException.class)
+    public void shouldFailWhenOnlyUserNameIsPresent() throws URISyntaxException {
         new URI().withUserInfo("username", null).toASCII();
     }
     
     @Test(expected=URISyntaxException.class)
-    public void throwsExceptionWithOnlyUserpass() throws URISyntaxException {
+    public void shouldFailWhenOnlyUserPassIsPresent() throws URISyntaxException {
         new URI().withUserInfo(null, "userpass").toASCII();
     }
     
     @Test(expected=URISyntaxException.class)
-    public void throwsExceptionWithOnlySchemeAndFragment() throws URISyntaxException {
+    public void shouldFailWithOnlySchemeAndFragment() throws URISyntaxException {
         new URI().withScheme("http").withFragment("fragment").toASCII();
     }
     
     @Test(expected=URISyntaxException.class)
-    public void throwsExceptionWithOnlyUserInfoAndPort() throws URISyntaxException {
+    public void shouldFailWithOnlyUserInfoAndPort() throws URISyntaxException {
         new URI().withUserInfo("user", "pass").withPort(80).toASCII();
     }
     
     @Test
-    public void constructsWithSchemeAndHost() throws URISyntaxException {
+    public void shouldConstructWithSchemeAndHost() throws URISyntaxException {
         URI uri = new URI().withScheme("http").withHost("example.com");
         Assert.assertEquals("http://example.com", uri.toASCII());
         Assert.assertEquals(uri.toASCII(), URI.parse("http://example.com").toASCII());
     }
     
     @Test
-    public void constructsWithSchemeHostAndPath() throws URISyntaxException {
+    public void shouldConstructWithSchemeHostAndPath() throws URISyntaxException {
         URI uri = new URI().withScheme("http").withHost("example.com").withPath("path");
         Assert.assertEquals("http://example.com/path", uri.toASCII());
     }
     
     @Test
-    public void constructsWithSchemeAndPath() throws URISyntaxException {
+    public void shouldConstructWithSchemeAndPath() throws URISyntaxException {
         URI uri = new URI().withScheme("http").withPath("path");
         Assert.assertEquals("http:path", uri.toASCII());
     }
     
     @Test
-    public void parsesURIWithSchemeAndPath() throws URISyntaxException {
+    public void shouldParseWithSchemeAndPath() throws URISyntaxException {
         URI uri = URI.parse("http:path");
         Assert.assertEquals("http:path", uri.toASCII());
         Assert.assertEquals("http", uri.scheme());
@@ -134,26 +134,26 @@ public class URITest {
     }
     
     @Test
-    public void siteConstructsWithHostAndScheme() throws URISyntaxException {
+    public void shouldConstructSiteWithHostAndScheme() throws URISyntaxException {
         URI uri = new URI().withScheme("http").withHost("example.com");
         Assert.assertEquals("http://example.com", uri.site());
         Assert.assertTrue(uri.site().compareTo(URI.parse("http://example.com").toASCII()) == 0);
     }
     
     @Test
-    public void hostTransformsToPercentEncodedLowerCaseCharacters() throws URISyntaxException {
+    public void shouldTransformOctetsToLowerCase() throws URISyntaxException {
         URI uri = URI.parse("http://www.%66%6f%6f%62%61%72.com");
         Assert.assertEquals("www.foobar.com", uri.host());
     }
     
     @Test
-    public void transformPercentEncodedUpperCaseCharacters() throws URISyntaxException {
+    public void shouldTransformUppercaseOctetsToLowercase() throws URISyntaxException {
         URI uri = URI.parse("http://www.%44%42%50.com"); // => 'DBP'
         Assert.assertEquals("www.dbp.com", uri.host());
     }
     
     @Test
-    public void noTransformOfPercentEncodedSpecialCharacters() throws URISyntaxException {
+    public void shouldNotTransformSpecialEncodedCharacters() throws URISyntaxException {
         URI uri = URI.parse("http://www.Test%7B%7D.com");
         Assert.assertEquals("www.test%7B%7D.com", uri.host());
     }
@@ -170,61 +170,43 @@ public class URITest {
         URIAssert.equals("/test/foo/bar", uri.path());
     }
     
+    //
+    // Section 1.1.2 of RFC 3986
+    //
     @Test
     public void shouldParseFtpURICorrectly() throws URISyntaxException {
-        URI uri = URI.parse("ftp://ftp.is.co.za/rfc/");
-//        URI uri = URI.parse("ftp://ftp.is.co.za/rfc/rfc1808.txt");
+        URI uri = URI.parse("ftp://ftp.is.co.za/rfc/rfc1808.txt");
         URIAssert.equals("ftp", uri.scheme());
         URIAssert.equals("ftp.is.co.za", uri.host());
         URIAssert.equals("/rfc/rfc1808.txt", uri.path());
         URIAssert.equals("21", uri.inferredPort());
     }
-    public void shouldConstructFtpURICorrectly() {
-//        URI uri = new URI()
-//            .withScheme("ftp")
-//            .withHost()
+    
+    @Test
+    public void shouldConstructFtpURICorrectly() throws URISyntaxException {
+        URI uri = new URI()
+            .withScheme("ftp")
+            .withHost("ftp.is.co.za")
+            .withPath("/rfc/rfc1808.txt");
+        URIAssert.equals("ftp://ftp.is.co.za/rfc/rfc1808.txt", uri.toASCII());
     }
-/*
-# Section 1.1.2 of RFC 3986
-describe Addressable::URI, "when parsed from " +
-    "'ftp://ftp.is.co.za/rfc/rfc1808.txt'" do
-  before do
-    @uri = Addressable::URI.parse("ftp://ftp.is.co.za/rfc/rfc1808.txt")
-  end
-
-  it "should use the 'ftp' scheme" do
-    @uri.scheme.should == "ftp"
-  end
-
-  it "should be considered to be ip-based" do
-    @uri.should be_ip_based
-  end
-
-  it "should have a host of 'ftp.is.co.za'" do
-    @uri.host.should == "ftp.is.co.za"
-  end
-
-  it "should have inferred_port of 21" do
-    @uri.inferred_port.should == 21
-  end
-
-  it "should have a path of '/rfc/rfc1808.txt'" do
-    @uri.path.should == "/rfc/rfc1808.txt"
-  end
-
-  it "should not have a request URI" do
-    @uri.request_uri.should == nil
-  end
-
-  it "should be considered to be in normal form" do
-    @uri.normalize.should be_eql(@uri)
-  end
-
-  it "should have an origin of 'ftp://ftp.is.co.za'" do
-    @uri.origin.should == 'ftp://ftp.is.co.za'
-  end
-end
- */
+    
+    @Test
+    public void shouldParseHttpURICorrectly() throws URISyntaxException {
+        URI uri = URI.parse("http://www.ietf.org/rfc/rfc2396.txt");
+        URIAssert.equals("http", uri.scheme());
+        URIAssert.equals("www.ietf.org", uri.host());
+        URIAssert.equals("/rfc/rfc2396.txt", uri.path());
+        URIAssert.equals("80", uri.inferredPort());
+    }
+    
+    @Test
+    public void shouldConstructHttpURICorrectly() throws URISyntaxException {
+        URI uri = new URI()
+            .withScheme("http")
+            .withHost("www.ietf.org")
+            .withPath("/rfc/rfc2396.txt");
+        URIAssert.equals("http://www.ietf.org/rfc/rfc2396.txt", uri.toASCII());
+    }
 }
-
 
