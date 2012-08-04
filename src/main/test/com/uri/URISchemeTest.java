@@ -25,22 +25,20 @@ public class URISchemeTest {
         URIAssert.exception("99://test.com");
     }
     
-    @Test
+    @Test(expected=URISyntaxException.class)
     public void schemeMustContainHierarchicalComponent() throws URISyntaxException {
-        URIAssert.exception("ftp:");
-        URIAssert.exception("http:");
-        URIAssert.exception("mail_to:");
+        new URI().withScheme("ftp").toASCII();
     }
     
     @Test
     public void schemeMustStartWithLetter() throws URISyntaxException {
-        URIAssert.scheme("http://example.com", "http");
-        URIAssert.scheme("ftp://user:pass@test.com/here", "ftp");
+        URIAssert.equals("http",URI.parse("http://example").scheme());
+        URIAssert.equals("ftp",URI.parse("ftp://user:pass@test.com/here").scheme());
     }
     
     @Test
     public void schemeAllowsDotHyphenAndPlus() throws URISyntaxException {
-        URIAssert.scheme("t.a+b-c://test.com", "t.a+b-c");
+        URIAssert.equals("t.a+b-c", URI.parse("t.a+b-c://test.com").scheme());
     }
 
 }

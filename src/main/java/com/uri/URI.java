@@ -1,50 +1,159 @@
 package com.uri;
 
 import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class URI {
     
+    private final static Map<String, Integer> DefaultPortMap = new HashMap<String, Integer>();
+    
     private final static String RegExUserInfo  = "([a-zA-Z0-9-._~!$&'()*+,;=:]|%[0-9a-fA-F]{2})+";
     private final static String RegExNamedHost = "(?:([a-zA-Z0-9-._~!$&'()*+,;=]|%[0-9a-fA-F]{2})*)?";
     private final static String RegExPort      = "([0-9]{1,5})";
+    private final static String RegExScheme    = "^([a-zA-Z]+[a-zA-Z+-.]*)"; 
     
     private final static String RegExURI =
-          "^([a-zA-Z]+[a-zA-Z+-.]*):" +
+          "\\A" +
+          RegExScheme + ":" +
+          "(?:" +
           "\\/\\/" +
-          "(?:(.*)@)?" +
+          "(?:([a-zA-Z0-9-._%!$&'()*+,;=:]+)@)?" +
           "(?:([a-zA-Z0-9-._~%]+)|(?:\\[(.+)\\])|(?:\\[v(.+)\\]))" +
           "(?::([0-9]+))?" +
-          "(?:(\\/[a-zA-Z0-9-._~%!$&'()*+,;=:@]*))?";
+          //"(?:(\\/[a-zA-Z0-9-._~%!$&'()*+,;=:@]*))?" +
+          "(/(?:[a-z0-9-._~!$&'()*+,;=:@/]|%[0-9A-F]{2})*)?" +
+          "|" +
+          "(\\/?[a-z0-9-._~%!$&'()*+,;=:@]+(\\/[a-z0-9-._~%!$&'()*+,;=:@]+)*/?)?"+
+          ")" +
+          "\\Z";
     
     private final static Pattern URIPattern;
     private final static Pattern UserInfoPattern;
     private final static Pattern HostPattern;
     private final static Pattern PortPattern;
+    private final static Pattern SchemePattern;
     
-    private String scheme    = "";
-    private String username  = "";
-    private String userpass  = "";
-    private String host      = "";
-    private String port      = "";
-    private String path      = "";
-    
-    private StringBuilder remaining = new StringBuilder();
+    private String scheme    = null;
+    private String username  = null;
+    private String userpass  = null;
+    private String host      = null;
+    private String port      = null;
+    private String path      = null;
+    private String query     = null;
+    private String fragment  = null;
     
     static {
         URIPattern      = Pattern.compile(RegExURI);
         UserInfoPattern = Pattern.compile(RegExUserInfo);
         HostPattern     = Pattern.compile(RegExNamedHost);
         PortPattern     = Pattern.compile(RegExPort);
+        SchemePattern   = Pattern.compile(RegExScheme);
+        
+        DefaultPortMap.put("ftp", 21);
+        DefaultPortMap.put("http", 80);
     }
     
-    public URI(String url) throws URISyntaxException {
-        remaining.append(URIUtils.removePercentEncodedCharacters(url.toLowerCase()));
-        parseURI(remaining);
-        if (remaining.length() > 0) {
-            throw new URISyntaxException(url, "Some components could not be parsed!");
+    public URI() {
+    }
+    
+    public URI withHost(String host) throws URISyntaxException {
+        parseNamedHost(host);
+        return this;
+    }
+    
+    public URI withIPV6Host(String ipv6Host) {
+        parseIpV6Host(ipv6Host);
+        return this;
+    }
+    
+    private URI withUserInfo(String userInfo) throws URISyntaxException {
+        parseUserInfo(userInfo);
+        return this;
+    }
+    
+    public URI withUserInfo(String username, String userpass) throws URISyntaxException {
+        String userinfo = "";
+        userinfo += (username != null) ? username : "";
+        userinfo += (userpass != null) ? ":" + userpass : "";
+        return withUserInfo(userinfo);
+    }
+    
+    public URI withScheme(String scheme) throws URISyntaxException {
+        parseScheme(scheme);
+        return this;
+    }
+    
+    public URI withPort(int port) throws URISyntaxException {
+        parsePort("" + port); // TODO check port before!
+        return this;
+    }
+    
+    private URI withPort(String port) throws URISyntaxException {
+        parsePort(port);
+        return this;
+    }
+    
+    public URI withPath(String path) throws URISyntaxException {
+        parsePath(path);
+        return this;
+    }
+    
+    private URI withQuery(String query) {
+        parseQuery(query);
+        return this;
+    }
+    
+    public URI withFragment(String fragment) {
+        parseFragment(fragment);
+        return this;
+    }
+    
+    public static URI parse(String url) throws URISyntaxException {
+        url = URIUtils.removePercentEncodedCharacters(url.toLowerCase());
+        Matcher matcher = URIPattern.matcher(url);
+        if (matcher.find()) {
+            if (matcher.end() != url.length()) {
+                throw new URISyntaxException(url, "Some components could not be parsed!");
+            }
+            
+            String scheme    = matcher.group(1);
+            String userInfo  = matcher.group(2);
+            String namedHost = matcher.group(3);
+            String ipv6Host  = matcher.group(4);
+            //String ipFuture  = matcher.group(5);
+            String port      = matcher.group(6);
+            String path      = matcher.group(7);
+            if (path == null) {
+                path = matcher.group(8);
+            }
+            URI uri = new URI()
+                .withScheme(scheme)
+                .withUserInfo(userInfo)
+                .withPort(port)
+                .withPath(path);
+            if (namedHost != null)
+                uri.withHost(namedHost);
+            if (ipv6Host != null)
+                uri.withIPV6Host(ipv6Host);
+            
+            return uri;
         }
+        throw new URISyntaxException(url, "Some components could not be parsed!");
+    }
+    
+    public static URI parseURL(URL url) throws URISyntaxException {
+        URI uri = new URI()
+                .withScheme(url.getProtocol())
+                .withUserInfo(url.getUserInfo())
+                .withHost(url.getHost())
+                .withPort(url.getPort())
+                .withPath(url.getPath())
+                .withQuery(url.getQuery());
+        return uri;
     }
     
     public String scheme() {
@@ -59,6 +168,13 @@ public class URI {
         return userpass;
     }
     
+    public String userinfo() {
+        if (username != null && userpass != null && !username.isEmpty()) {
+            String.format("%s:%s", username, userpass);
+        }
+        return null;
+    }
+    
     public String host() {
         return host;
     }
@@ -68,37 +184,80 @@ public class URI {
     }
     
     public String path() {
-        return path;
+        if (path != null) {
+            return path;
+        }
+        return null;
     }
     
-    private void parseURI(StringBuilder url) throws URISyntaxException {
-        System.out.println("Parsing uri: " + url);
-        Matcher matcher = URIPattern.matcher(url);
-        if (matcher.find()) {
-            for (int i = 1; i < matcher.groupCount(); i++) {
-                System.out.println("  " + i + ": " + matcher.group(i));
+    public String query() {
+        return query;
+    }
+    
+    public String fragment() {
+        return fragment;
+    }
+    
+    public String site() {
+        String authority = authority();
+        String scheme = scheme();
+        
+        if (scheme != null && authority != null) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(scheme != null ? scheme + ":" : "");
+            if (!authority.isEmpty()) {
+                builder.append("//").append(authority);
             }
-            
-            String scheme    = matcher.group(1);
-            String userInfo  = matcher.group(2);
-            String namedHost = matcher.group(3);
-            String ipv6Host  = matcher.group(4);
-            String ipFuture  = matcher.group(5);
-            String port      = matcher.group(6);
-            String path      = matcher.group(7);
-            
-            parseScheme(scheme);
-            parseUserInfo(userInfo);
-            parseHost(namedHost, ipv6Host, ipFuture);
-            parsePort(port);
-            parsePath(path);
-            
-            url.delete(matcher.start(), matcher.end());
+            return builder.toString();
         }
+        
+        return null;
+    }
+    
+    public String authority() {
+        StringBuilder result = new StringBuilder();
+        String userinfo = userinfo();
+        result.append(userinfo != null ? userinfo : "");
+        result.append(host != null ? host : "");
+        result.append(port != null ? ":" + port : "");
+        return result.toString();
+    }
+    
+    public String inferredPort() {
+        if (scheme != null && DefaultPortMap.containsKey(scheme)) {
+            return DefaultPortMap.get(scheme).toString();
+        }
+        return null;
+    }
+    
+    // TODO create a valid representation of the URI as ASCII!
+    public String toASCII() throws URISyntaxException {
+        String authority = authority();
+        String path = path();
+        if (authority.isEmpty() && path == null) {
+            throw new URISyntaxException("", "URI is missing authority or path!");
+        }
+        
+        StringBuilder builder = new StringBuilder();
+        builder.append(site());
+        builder.append(path() != null ? path() : "");
+        builder.append(query != null ? query : "");
+        builder.append(fragment != null ? "#" + fragment : "");
+        
+        String uri = builder.toString();
+        Matcher matcher = URIPattern.matcher(uri);
+        if (!matcher.find()) {
+            throw new URISyntaxException(uri, "URI representation is not valid!"); 
+        }
+        return uri;
     }
     
     private void parseScheme(String scheme) throws URISyntaxException {
         if (scheme == null || scheme.isEmpty()) {
+            throw new URISyntaxException(scheme, "No scheme given");
+        }
+        Matcher matcher = SchemePattern.matcher(scheme);
+        if (!matcher.matches()) {
             throw new URISyntaxException(scheme, "No valid scheme");
         }
         this.scheme = scheme;
@@ -123,26 +282,16 @@ public class URI {
         return matcher.matches();
     }
     
-    private void parseHost(String namedHost, String ipV6Host, String ipFuture) throws URISyntaxException {
-        if (namedHost != null) {
-            host = parseNamedHost(namedHost);
-        } else if (ipV6Host != null) {
-            host = parseIpV6Host(ipV6Host);
-        } else {
-            throw new URISyntaxException("", "No valid host found");
-        }
-    }
-    
-    private String parseNamedHost(String namedHost) throws URISyntaxException {
+    private void parseNamedHost(String namedHost) throws URISyntaxException {
         Matcher matcher = HostPattern.matcher(namedHost);
         if (!matcher.matches()) {
             throw new URISyntaxException(namedHost, "Host is not valid");
         }
-        return namedHost;
+        host = namedHost;
     }
     
-    private String parseIpV6Host(String ipV6Host) {
-        return ipV6Host.toUpperCase();
+    private void parseIpV6Host(String ipV6Host) {
+        host = ipV6Host.toUpperCase();
     }
     
     private void parsePort(String port) throws URISyntaxException {
@@ -162,7 +311,19 @@ public class URI {
     
     private void parsePath(String path) {
         if (path != null) {
-            this.path = path;
+            this.path = (host != null && !path.startsWith("/")) ? "/" + path : path;
+        }
+    }
+    
+    private void parseQuery(String query) {
+        if (query != null) {
+            this.query = query;
+        }
+    }
+    
+    private void parseFragment(String fragment) {
+        if (fragment != null) {
+            this.fragment = fragment;
         }
     }
     
