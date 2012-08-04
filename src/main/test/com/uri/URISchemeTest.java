@@ -25,11 +25,9 @@ public class URISchemeTest {
         URIAssert.exception("99://test.com");
     }
     
-    @Test
+    @Test(expected=URISyntaxException.class)
     public void schemeMustContainHierarchicalComponent() throws URISyntaxException {
-        URIAssert.exception("ftp:");
-        URIAssert.exception("http:");
-        URIAssert.exception("mail_to:");
+        new URI().withScheme("ftp").toASCII();
     }
     
     @Test

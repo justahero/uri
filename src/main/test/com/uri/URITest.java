@@ -131,7 +131,13 @@ public class URITest {
         Assert.assertEquals("http:path", uri.toASCII());
         Assert.assertEquals("http", uri.scheme());
         Assert.assertEquals("path", uri.path());
-        //Assert.assertEquals("http:", uri.site());
+    }
+    
+    @Test
+    public void siteConstructsWithHostAndScheme() throws URISyntaxException {
+        URI uri = new URI().withScheme("http").withHost("example.com");
+        Assert.assertEquals("http://example.com", uri.site());
+        Assert.assertTrue(uri.site().compareTo(URI.parse("http://example.com").toASCII()) == 0);
     }
     
     @Test
