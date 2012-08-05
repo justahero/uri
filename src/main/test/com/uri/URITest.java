@@ -170,6 +170,12 @@ public class URITest {
         URIAssert.equals("/test/foo/bar", uri.path());
     }
     
+    @Test
+    public void test() throws URISyntaxException {
+        URI uri = URI.parse("ldap://[2001:db8::7]/c=GB?objectClass");
+        //URI.parse("ldap://[2001:db8::7]/c=GB?objectClass?one");
+    }
+    
     //
     // Section 1.1.2 of RFC 3986
     //
@@ -208,5 +214,29 @@ public class URITest {
             .withPath("/rfc/rfc2396.txt");
         URIAssert.equals("http://www.ietf.org/rfc/rfc2396.txt", uri.toASCII());
     }
+    
+    @Test
+    public void shouldParseLdapURICorrectly() throws URISyntaxException {
+        URI uri = URI.parse("ldap://[2001:db8::7]/c=GB?objectClass?one");
+        URIAssert.equals("ldap", uri.scheme());
+        URIAssert.equals("[2001:db8::7]", uri.host());
+        URIAssert.equals("389", uri.inferredPort());
+        URIAssert.equals("/c=GB", uri.path());
+        URIAssert.equals("objectClass?one", uri.query());
+    }
+    
+    @Test
+    public void shouldConstructLdapURICorrectly() throws URISyntaxException {
+        URI uri = new URI()
+            .withScheme("ldap")
+            .withHost("[2001:db8:7]")
+            .withPath("/c=GB")
+            .withQuery("objectClass?one");
+        URIAssert.equals("ldap://[2001:db8::7]/c=GB?objectClass?one", uri.toASCII());
+    }
+    
+    // ldap://[2001:db8::7]/c=GB?objectClass?one
 }
+
+
 

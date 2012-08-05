@@ -24,11 +24,12 @@ public class URI {
           "(?:([a-zA-Z0-9-._%!$&'()*+,;=:]+)@)?" +
           "(?:([a-zA-Z0-9-._~%]+)|(?:\\[(.+)\\])|(?:\\[v(.+)\\]))" +
           "(?::([0-9]+))?" +
-          //"(?:(\\/[a-zA-Z0-9-._~%!$&'()*+,;=:@]*))?" +
           "(/(?:[a-z0-9-._~!$&'()*+,;=:@/]|%[0-9A-F]{2})*)?" +
           "|" +
           "(\\/?[a-z0-9-._~%!$&'()*+,;=:@]+(\\/[a-z0-9-._~%!$&'()*+,;=:@]+)*/?)?"+
           ")" +
+          "(\\?[a-z0-9\\-._~%!$&'()*+,;=:@/?]*)?" +
+          // (?<query>\?[a-z0-9\-._~%!$&'()*+,;=:@/?]*)?
           "\\Z";
     
     private final static Pattern URIPattern;
@@ -102,7 +103,7 @@ public class URI {
         return this;
     }
     
-    private URI withQuery(String query) {
+    public URI withQuery(String query) {
         parseQuery(query);
         return this;
     }

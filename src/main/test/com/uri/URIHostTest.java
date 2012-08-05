@@ -66,13 +66,13 @@ public class URIHostTest {
     
     @Test
     public void ipV6HostUnicast() throws URISyntaxException {
-        URIAssert.host("http://[1080:0:0:0:8:800:200C:417A]", "1080:0:0:0:8:800:200C:417A");
+        URIAssert.equals("1080:0:0:0:8:800:200C:417A", URI.parse("http://[1080:0:0:0:8:800:200C:417A]").toASCII());
     }
     
     @Test
     public void ipV6HostWithIpV4Part() throws URISyntaxException {
-        URIAssert.host("http://[0:0:0:0:0:0:13.1.68.3]/", "0:0:0:0:0:0:13.1.68.3");
-        URIAssert.host("http://[0:0:0:0:0:FFFF:129.144.52.38]", "0:0:0:0:0:FFFF:129.144.52.38");
+        URIAssert.equals("0:0:0:0:0:0:13.1.68.3", URI.parse("http://[0:0:0:0:0:0:13.1.68.3]/").toASCII());
+        URIAssert.equals("0:0:0:0:0:FFFF:129.144.52.38", URI.parse("http://[0:0:0:0:0:FFFF:129.144.52.38]").toASCII());
     }
     
     @Test
