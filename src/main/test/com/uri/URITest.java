@@ -143,13 +143,13 @@ public class URITest {
     @Test
     public void shouldTransformLetterOctetsToLowerCase() throws URISyntaxException {
         URI uri = URI.parse("http://www.%66%6f%6f%62%61%72.com");
-        Assert.assertEquals("www.foobar.com", uri.host());
+        URIAssert.equals("www.foobar.com", uri.host());
     }
     
     @Test
     public void shouldTransformUppercaseOctetsToLowercase() throws URISyntaxException {
         URI uri = URI.parse("http://www.%44%42%50.com"); // => 'DBP'
-        Assert.assertEquals("www.dbp.com", uri.host());
+        URIAssert.equals("www.dbp.com", uri.host());
     }
     
     @Test
@@ -172,7 +172,7 @@ public class URITest {
     
     @Test
     public void test() throws URISyntaxException {
-        URI uri = URI.parse("ldap://[2001:db8::7]/c=GB?objectClass");
+       URI.parse("ldap://[2001:db8::7]/c=GB?objectClass");
         //URI.parse("ldap://[2001:db8::7]/c=GB?objectClass?one");
     }
     
