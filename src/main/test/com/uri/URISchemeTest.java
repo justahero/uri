@@ -32,8 +32,8 @@ public class URISchemeTest {
     
     @Test
     public void schemeMustStartWithLetter() throws URISyntaxException {
-        URIAssert.equals("http",URI.parse("http://example").scheme());
-        URIAssert.equals("ftp",URI.parse("ftp://user:pass@test.com/here").scheme());
+        URIAssert.equals("http", URI.parse("http://example").scheme());
+        URIAssert.equals("ftp", URI.parse("ftp://user:pass@test.com/here").scheme());
     }
     
     @Test

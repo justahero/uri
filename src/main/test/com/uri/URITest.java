@@ -141,7 +141,7 @@ public class URITest {
     }
     
     @Test
-    public void shouldTransformOctetsToLowerCase() throws URISyntaxException {
+    public void shouldTransformLetterOctetsToLowerCase() throws URISyntaxException {
         URI uri = URI.parse("http://www.%66%6f%6f%62%61%72.com");
         Assert.assertEquals("www.foobar.com", uri.host());
     }
@@ -155,7 +155,7 @@ public class URITest {
     @Test
     public void shouldNotTransformSpecialEncodedCharacters() throws URISyntaxException {
         URI uri = URI.parse("http://www.Test%7B%7D.com");
-        Assert.assertEquals("www.test%7B%7D.com", uri.host());
+        URIAssert.equals("www.test%7B%7D.com", uri.host());
     }
     
     @Test

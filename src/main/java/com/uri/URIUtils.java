@@ -9,12 +9,12 @@ public class URIUtils {
     final static Pattern PercentEncodingPattern = Pattern.compile("(?:%([a-fA-F0-9]{2}))");
     
     public static String removePercentEncodedCharacters(String url) {
-        StringBuilder result = new StringBuilder(url);
+        StringBuilder result = new StringBuilder(url.toLowerCase());
         Matcher matcher = PercentEncodingPattern.matcher(result);
         int index = 0;
         while (matcher.find(index++)) {
-            String hexValue = matcher.group(1);
-            String replaced = URIUtils.getPercentEncodedChar(hexValue);
+            String hexString = matcher.group(1);
+            String replaced = URIUtils.getPercentEncodedChar(hexString);
             result.replace(matcher.start(), matcher.end(), replaced);
             matcher.reset();
         }
@@ -29,6 +29,5 @@ public class URIUtils {
         }
         return "%" + hexValue.toUpperCase();
     }
-    
 }
 

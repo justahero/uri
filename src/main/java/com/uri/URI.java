@@ -21,15 +21,20 @@ public class URI {
           RegExScheme + ":" +
           "(?:" +
           "\\/\\/" +
-          "(?:([a-zA-Z0-9-._%!$&'()*+,;=:]+)@)?" +
-          "(?:([a-zA-Z0-9-._~%]+)|(?:\\[(.+)\\])|(?:\\[v(.+)\\]))" +
+          "(?:((?:[a-z0-9-._~!$&'()*+,;=:]|%[0-9A-F]{2})*)@)?" +
+          "(?:" +
+              "((?:[a-zA-Z0-9-._~]|%[0-9A-F]{2})*)" +
+              "|" +
+              "(?:(\\[[a-fA-F0-9:.]+\\]))" +
+              "|" +
+              "(?:\\[v(.+)\\])" +
+          ")" +
           "(?::([0-9]+))?" +
           "(/(?:[a-z0-9-._~!$&'()*+,;=:@/]|%[0-9A-F]{2})*)?" +
           "|" +
           "(\\/?[a-z0-9-._~%!$&'()*+,;=:@]+(\\/[a-z0-9-._~%!$&'()*+,;=:@]+)*/?)?"+
           ")" +
           "(\\?[a-z0-9\\-._~%!$&'()*+,;=:@/?]*)?" +
-          // (?<query>\?[a-z0-9\-._~%!$&'()*+,;=:@/?]*)?
           "\\Z";
     
     private final static Pattern URIPattern;
@@ -114,7 +119,7 @@ public class URI {
     }
     
     public static URI parse(String url) throws URISyntaxException {
-        url = URIUtils.removePercentEncodedCharacters(url.toLowerCase());
+        //url = URIUtils.removePercentEncodedCharacters(url);
         Matcher matcher = URIPattern.matcher(url);
         if (matcher.find()) {
             if (matcher.end() != url.length()) {
@@ -284,6 +289,7 @@ public class URI {
     }
     
     private void parseNamedHost(String namedHost) throws URISyntaxException {
+        namedHost = URIUtils.removePercentEncodedCharacters(namedHost);
         Matcher matcher = HostPattern.matcher(namedHost);
         if (!matcher.matches()) {
             throw new URISyntaxException(namedHost, "Host is not valid");
@@ -292,7 +298,7 @@ public class URI {
     }
     
     private void parseIpV6Host(String ipV6Host) {
-        host = ipV6Host.toUpperCase();
+        host = ipV6Host;
     }
     
     private void parsePort(String port) throws URISyntaxException {
