@@ -18,23 +18,24 @@ public class URI {
     
     private final static String RegExURI =
           "\\A" +
-          RegExScheme + ":" +
-          "(?:" +
-          "\\/\\/" +
-          "(?:((?:[a-zA-Z0-9-._~!$&'()*+,;=:]|%[0-9a-fA-F]{2})*)@)?" +
-          "(?:" +
-              "((?:[a-zA-Z0-9-._~]|%[0-9a-fA-F]{2})*)" +
-              "|" +
-              "(?:(\\[[a-fA-F0-9:.]+\\]))" +
-              "|" +
-              "(?:\\[v(.+)\\])" +
+          "^([a-zA-Z]+[a-zA-Z+-.]*):" + // scheme
+          "(?:" + // authority
+              "\\/\\/" +
+              "(?:((?:[a-zA-Z0-9-._~!$&'()*+,;=:]|%[0-9a-fA-F]{2})+)@)?" + // user info
+              "(?:" + // host
+                  "((?:[a-zA-Z0-9-._~]|%[0-9a-fA-F]{2})*)" + // named or ip4 host 
+                  "|" +
+                  "(?:(\\[[a-fA-F0-9:.]+\\]))" + // ipv6 host
+                  "|" +
+                  "(?:\\[v(.+)\\])" + // ip future host
+              ")" +
+              "(?::([0-9]+))?" + // port
+              "(/(?:[a-zA-Z0-9-._~!$&'()*+,;=:@/]|%[0-9a-fA-F]{2})*)?" + // path
+          "|" + // no authority
+              "(\\/?[a-zA-Z0-9-._~%!$&'()*+,;=:@]+(\\/[a-zA-Z0-9-._~%!$&'()*+,;=:@]+)*)?"+
           ")" +
-          "(?::([0-9]+))?" +
-          "(/(?:[a-z0-9-._~!$&'()*+,;=:@/]|%[0-9A-F]{2})*)?" +
-          "|" +
-          "(\\/?[a-z0-9-._~%!$&'()*+,;=:@]+(\\/[a-z0-9-._~%!$&'()*+,;=:@]+)*/?)?"+
-          ")" +
-          "(\\?[a-z0-9\\-._~%!$&'()*+,;=:@/?]*)?" +
+          "(?:\\?([a-zA-Z0-9-._~%!$&'()*+,;=:@/?]*))?" + // query string
+          "(?:\\#([a-zA-Z0-9-._~%!$&'()*+,;=:@/?]*))?" + // fragment
           "\\Z";
     
     private final static Pattern URIPattern;
@@ -59,8 +60,9 @@ public class URI {
         PortPattern     = Pattern.compile(RegExPort);
         SchemePattern   = Pattern.compile(RegExScheme);
         
-        DefaultPortMap.put("ftp", 21);
+        DefaultPortMap.put("ftp",  21);
         DefaultPortMap.put("http", 80);
+        DefaultPortMap.put("ldap", 389);
     }
     
     public URI() {
@@ -120,10 +122,14 @@ public class URI {
     
     public static URI parse(String url) throws URISyntaxException {
         //url = URIUtils.removePercentEncodedCharacters(url);
+        System.out.println("Parsing: " + url);
         Matcher matcher = URIPattern.matcher(url);
         if (matcher.find()) {
             if (matcher.end() != url.length()) {
                 throw new URISyntaxException(url, "Some components could not be parsed!");
+            }
+            for (int i = 1; i < matcher.groupCount(); i++) {
+                System.out.println("  " + i + ": " + matcher.group(i));
             }
             
             String scheme    = matcher.group(1);
@@ -136,11 +142,14 @@ public class URI {
             if (path == null) {
                 path = matcher.group(8);
             }
+            String query = matcher.group(9);
+            
             URI uri = new URI()
                 .withScheme(scheme)
                 .withUserInfo(userInfo)
                 .withPort(port)
-                .withPath(path);
+                .withPath(path)
+                .withQuery(query);
             if (namedHost != null)
                 uri.withHost(namedHost);
             if (ipv6Host != null)
@@ -236,7 +245,6 @@ public class URI {
         return null;
     }
     
-    // TODO create a valid representation of the URI as ASCII!
     public String toASCII() throws URISyntaxException {
         String authority = authority();
         String path = path();

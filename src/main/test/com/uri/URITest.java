@@ -22,33 +22,33 @@ public class URITest {
     
     @Test
     public void shouldConstructURIWithScheme() throws URISyntaxException {
-        Assert.assertEquals("http", new URI().withScheme("http").scheme());
-        Assert.assertEquals("ftp", new URI().withScheme("ftp").scheme());
+        URIAssert.equals("http", new URI().withScheme("http").scheme());
+        URIAssert.equals("ftp", new URI().withScheme("ftp").scheme());
     }
     
     @Test
     public void shouldConstructURIWithHost() throws URISyntaxException {
-        Assert.assertEquals("example.com", new URI().withHost("example.com").host());
+        URIAssert.equals("example.com", new URI().withHost("example.com").host());
     }
     
     @Test
     public void shouldConstructURIWithRepeatedScheme() throws URISyntaxException {
         URI uri = new URI().withScheme("mailto").withScheme("http").withScheme("ftp");
-        Assert.assertEquals("ftp", uri.scheme());
+        URIAssert.equals("ftp", uri.scheme());
     }
     
     @Test
     public void shouldConstructURIWithSchemeAndHost() throws URISyntaxException {
         URI uri = new URI().withScheme("http").withHost("example.com");
-        Assert.assertEquals("http", uri.scheme());
-        Assert.assertEquals("example.com", uri.host());
-        Assert.assertEquals("http://example.com", uri.toASCII());
+        URIAssert.equals("http", uri.scheme());
+        URIAssert.equals("example.com", uri.host());
+        URIAssert.equals("http://example.com", uri.toASCII());
     }
     
     @Test
     public void shouldConstructURIWithPath() throws URISyntaxException {
         URI uri = new URI().withPath("test");
-        Assert.assertEquals("test", uri.path());
+        URIAssert.equals("test", uri.path());
     }
     
     @Test(expected=URISyntaxException.class)
@@ -68,7 +68,8 @@ public class URITest {
     
     @Test
     public void shouldDecodeHostWithPercentEncodedCharacters() throws URISyntaxException {
-        URIAssert.host("http://www.%74%65%73%74.com", "www.test.com");
+        URI uri = URI.parse("http://www.%74%65%73%74.com");
+        URIAssert.equals("www.test.com", uri.host());
     }
     
     @Test(expected=URISyntaxException.class)
@@ -109,35 +110,35 @@ public class URITest {
     @Test
     public void shouldConstructWithSchemeAndHost() throws URISyntaxException {
         URI uri = new URI().withScheme("http").withHost("example.com");
-        Assert.assertEquals("http://example.com", uri.toASCII());
-        Assert.assertEquals(uri.toASCII(), URI.parse("http://example.com").toASCII());
+        URIAssert.equals("http://example.com", uri.toASCII());
+        URIAssert.equals(uri.toASCII(), URI.parse("http://example.com").toASCII());
     }
     
     @Test
     public void shouldConstructWithSchemeHostAndPath() throws URISyntaxException {
         URI uri = new URI().withScheme("http").withHost("example.com").withPath("path");
-        Assert.assertEquals("http://example.com/path", uri.toASCII());
+        URIAssert.equals("http://example.com/path", uri.toASCII());
     }
     
     @Test
     public void shouldConstructWithSchemeAndPath() throws URISyntaxException {
         URI uri = new URI().withScheme("http").withPath("path");
-        Assert.assertEquals("http:path", uri.toASCII());
+        URIAssert.equals("http:path", uri.toASCII());
     }
     
     @Test
     public void shouldParseWithSchemeAndPath() throws URISyntaxException {
         URI uri = URI.parse("http:path");
-        Assert.assertEquals("http:path", uri.toASCII());
-        Assert.assertEquals("http", uri.scheme());
-        Assert.assertEquals("path", uri.path());
+        URIAssert.equals("http:path", uri.toASCII());
+        URIAssert.equals("http", uri.scheme());
+        URIAssert.equals("path", uri.path());
     }
     
     @Test
     public void shouldConstructSiteWithHostAndScheme() throws URISyntaxException {
         URI uri = new URI().withScheme("http").withHost("example.com");
-        Assert.assertEquals("http://example.com", uri.site());
-        Assert.assertTrue(uri.site().compareTo(URI.parse("http://example.com").toASCII()) == 0);
+        URIAssert.equals("http://example.com", uri.site());
+        URIAssert.equals(uri.site(), URI.parse("http://example.com").toASCII());
     }
     
     @Test
