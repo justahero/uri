@@ -12,7 +12,7 @@ public class URI {
     private final static Map<String, Integer> DefaultPortMap = new HashMap<String, Integer>();
     
     private final static String RegExUserInfo  = "([a-zA-Z0-9-._~!$&'()*+,;=:]|%[0-9a-fA-F]{2})+";
-    private final static String RegExNamedHost = "(?:([a-zA-Z0-9-._~!$&'()*+,;=]|%[0-9a-fA-F]{2})*)?";
+    private final static String RegExNamedHost = "(?:([a-zA-Z0-9-._~!$&'()*+,;=]|%[0-9a-fA-F]{2})*)";
     private final static String RegExPort      = "([0-9]{1,5})";
     private final static String RegExScheme    = "^([a-zA-Z]+[a-zA-Z+-.]*)"; 
     
@@ -32,7 +32,11 @@ public class URI {
               "(?::([0-9]+))?" + // port
               "(/(?:[a-zA-Z0-9-._~!$&'()*+,;=:@/]|%[0-9a-fA-F]{2})*)?" + // path
           "|" + // no authority
-              "(\\?[a-zA-Z0-9-._~%!$&'()*+,;=:@]*)?"+
+              "(?:" +
+                  "(?:([a-zA-Z0-9-._~%!$&'()*+,;=@]*))" +
+                  "|" +
+                  "(?:(/[a-zA-Z0-9-._~%!$&'()*+,;=:@]+))?" +
+              ")" +
           ")" +
           "(?:\\?([a-zA-Z0-9-._~%!$&'()*+,;=:@/?]*))?" + // query string
           "(?:\\#([a-zA-Z0-9-._~%!$&'()*+,;=:@/?]*))?" + // fragment
@@ -142,7 +146,10 @@ public class URI {
             if (path == null) {
                 path = matcher.group(8);
             }
-            String query = matcher.group(9);
+            if (path == null) {
+                path = matcher.group(9);
+            }
+            String query = matcher.group(10);
             
             URI uri = new URI()
                 .withScheme(scheme)
@@ -255,7 +262,7 @@ public class URI {
         StringBuilder builder = new StringBuilder();
         builder.append(site());
         builder.append(path() != null ? path() : "");
-        builder.append(query != null ? query : "");
+        builder.append(query != null ? "?" + query : "");
         builder.append(fragment != null ? "#" + fragment : "");
         
         String uri = builder.toString();
