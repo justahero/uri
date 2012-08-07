@@ -11,24 +11,43 @@ public class URI {
     
     private final static Map<String, Integer> DefaultPortMap = new HashMap<String, Integer>();
     
-    private final static String RegExUserInfo  = "([a-zA-Z0-9-._~!$&'()*+,;=:]|%[0-9a-fA-F]{2})+";
-    private final static String RegExNamedHost = "(?:([a-zA-Z0-9-._~!$&'()*+,;=]|%[0-9a-fA-F]{2})*)?";
-    private final static String RegExPort      = "([0-9]{1,5})";
-    private final static String RegExScheme    = "^([a-zA-Z]+[a-zA-Z+-.]*)"; 
+    private final static String ALPHA          = "a-zA-Z";
+    private final static String DIGIT          = "0-9";
+    private final static String HEX            = "a-fA-F0-9";
+    private final static String UNRESERVED     = ALPHA + DIGIT + "-._~";
+    private final static String SUBDELIM       = "!$&'()*+,;=";
+    private final static String COMMON         = UNRESERVED + SUBDELIM;
+    private final static String PERCENT        = "%["+HEX+"]{2}";
+    
+    private final static String RegExUserInfo  = "(["+COMMON+":]|"+PERCENT+")+";
+    private final static String RegExNamedHost = "(?:(["+COMMON+"]|"+PERCENT+")*)";
+    private final static String RegExPort      = "(["+DIGIT+"]{1,5})";
+    private final static String RegExScheme    = "^(["+ALPHA+"]+["+ALPHA+DIGIT+"+-.]*)"; 
     
     private final static String RegExURI =
           "\\A" +
-          RegExScheme + ":" +
-          "(?:" +
-          "\\/\\/" +
-          "(?:([a-zA-Z0-9-._%!$&'()*+,;=:]+)@)?" +
-          "(?:([a-zA-Z0-9-._~%]+)|(?:\\[(.+)\\])|(?:\\[v(.+)\\]))" +
-          "(?::([0-9]+))?" +
-          //"(?:(\\/[a-zA-Z0-9-._~%!$&'()*+,;=:@]*))?" +
-          "(/(?:[a-z0-9-._~!$&'()*+,;=:@/]|%[0-9A-F]{2})*)?" +
-          "|" +
-          "(\\/?[a-z0-9-._~%!$&'()*+,;=:@]+(\\/[a-z0-9-._~%!$&'()*+,;=:@]+)*/?)?"+
+          RegExScheme+":" + // scheme
+          "(?:" + // authority
+              "\\/\\/" +
+              "(?:((?:["+COMMON+":]|"+PERCENT+")+)@)?" + // user info
+              "(?:" + // host
+                  "((?:["+UNRESERVED+"]|"+PERCENT+")*)" + // named or ip4 host 
+                  "|" +
+                  "(?:(\\[["+HEX+":.]+\\]))" + // ipv6 host
+                  "|" +
+                  "(?:\\[v(.+)\\])" + // ip future host
+              ")" +
+              "(?::([0-9]+))?" + // port
+              "(/(?:["+COMMON+":@/]|"+PERCENT+")*)?" + // path
+          "|" + // no authority
+              "(?:" +
+                  "(["+COMMON+"@]+["+COMMON+":@]*)" +
+                  "|" +
+                  "(?:(/["+COMMON+":@]+))?" +
+              ")" +
           ")" +
+          "(?:\\?(["+COMMON+":@/?]*))?" + // query string
+          "(?:\\#(["+COMMON+":@/?]*))?" + // fragment
           "\\Z";
     
     private final static Pattern URIPattern;
@@ -53,8 +72,9 @@ public class URI {
         PortPattern     = Pattern.compile(RegExPort);
         SchemePattern   = Pattern.compile(RegExScheme);
         
-        DefaultPortMap.put("ftp", 21);
+        DefaultPortMap.put("ftp",  21);
         DefaultPortMap.put("http", 80);
+        DefaultPortMap.put("ldap", 389);
     }
     
     public URI() {
@@ -102,7 +122,7 @@ public class URI {
         return this;
     }
     
-    private URI withQuery(String query) {
+    public URI withQuery(String query) {
         parseQuery(query);
         return this;
     }
@@ -113,11 +133,15 @@ public class URI {
     }
     
     public static URI parse(String url) throws URISyntaxException {
-        url = URIUtils.removePercentEncodedCharacters(url.toLowerCase());
+        //url = URIUtils.removePercentEncodedCharacters(url);
+        System.out.println("Parsing: " + url);
         Matcher matcher = URIPattern.matcher(url);
         if (matcher.find()) {
             if (matcher.end() != url.length()) {
                 throw new URISyntaxException(url, "Some components could not be parsed!");
+            }
+            for (int i = 1; i < matcher.groupCount(); i++) {
+                System.out.println("  " + i + ": " + matcher.group(i));
             }
             
             String scheme    = matcher.group(1);
@@ -130,11 +154,17 @@ public class URI {
             if (path == null) {
                 path = matcher.group(8);
             }
+            if (path == null) {
+                path = matcher.group(9);
+            }
+            String query = matcher.group(10);
+            
             URI uri = new URI()
                 .withScheme(scheme)
                 .withUserInfo(userInfo)
                 .withPort(port)
-                .withPath(path);
+                .withPath(path)
+                .withQuery(query);
             if (namedHost != null)
                 uri.withHost(namedHost);
             if (ipv6Host != null)
@@ -184,10 +214,7 @@ public class URI {
     }
     
     public String path() {
-        if (path != null) {
-            return path;
-        }
-        return null;
+        return path;
     }
     
     public String query() {
@@ -230,7 +257,6 @@ public class URI {
         return null;
     }
     
-    // TODO create a valid representation of the URI as ASCII!
     public String toASCII() throws URISyntaxException {
         String authority = authority();
         String path = path();
@@ -241,7 +267,7 @@ public class URI {
         StringBuilder builder = new StringBuilder();
         builder.append(site());
         builder.append(path() != null ? path() : "");
-        builder.append(query != null ? query : "");
+        builder.append(query != null ? "?" + query : "");
         builder.append(fragment != null ? "#" + fragment : "");
         
         String uri = builder.toString();
@@ -283,6 +309,7 @@ public class URI {
     }
     
     private void parseNamedHost(String namedHost) throws URISyntaxException {
+        namedHost = URIUtils.normalizeString(namedHost);
         Matcher matcher = HostPattern.matcher(namedHost);
         if (!matcher.matches()) {
             throw new URISyntaxException(namedHost, "Host is not valid");
@@ -291,7 +318,7 @@ public class URI {
     }
     
     private void parseIpV6Host(String ipV6Host) {
-        host = ipV6Host.toUpperCase();
+        host = ipV6Host;
     }
     
     private void parsePort(String port) throws URISyntaxException {
