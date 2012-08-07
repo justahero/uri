@@ -8,8 +8,8 @@ public class URIUtils {
     final static String  UnreservedChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~";
     final static Pattern PercentEncodingPattern = Pattern.compile("(?:%([a-fA-F0-9]{2}))");
     
-    public static String removePercentEncodedCharacters(String url) {
-        StringBuilder result = new StringBuilder(url.toLowerCase());
+    public static String normalizeString(String text) {
+        StringBuilder result = new StringBuilder(text.toLowerCase());
         Matcher matcher = PercentEncodingPattern.matcher(result);
         int index = 0;
         while (matcher.find(index++)) {

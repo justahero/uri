@@ -6,16 +6,38 @@ import org.junit.Test;
 
 public class URISchemeTest {
     
+    //
+    // See section 3.1 of RFC3986, the scheme component
+    //
+    
+    @Test(expected=URISyntaxException.class)
+    public void shouldNotStartWithPlusCharacter() throws URISyntaxException {
+        URI.parse("+http://example.com");
+    }
+    
+    @Test(expected=URISyntaxException.class)
+    public void shouldNotStartWithDashCharacter() throws URISyntaxException {
+        URI.parse("-http://example.com");
+    }
+    
+    @Test(expected=URISyntaxException.class)
+    public void shouldNotStartWithDotCharacter() throws URISyntaxException {
+        URI.parse(".http://example.com");
+    }
+    
+    @Test(expected=URISyntaxException.class)
+    public void shouldNotStartWithDigit() throws URISyntaxException {
+        URI.parse("4http://www.test.com");
+    }
+    
     @Test
-    public void schemeMustNotStartWithInvalidCharacter() throws URISyntaxException {
-        URIAssert.exception("+http://example.com");
-        URIAssert.exception("-http://example.com");
-        URIAssert.exception(".ftp://example.com");
+    public void shouldAllowDigitsInScheme() throws URISyntaxException {
+        URI uri = URI.parse("ft9p://example.com");
+        URIAssert.equals("ft9p", uri.scheme());
     }
     
     @Test
     public void schemeMustNotContainInvalidCharacters() throws URISyntaxException {
-        URIAssert.exception("ft9p://example.com");
         URIAssert.exception("ft<>p://example.com");
     }
     
@@ -40,5 +62,5 @@ public class URISchemeTest {
     public void schemeAllowsDotHyphenAndPlus() throws URISyntaxException {
         URIAssert.equals("t.a+b-c", URI.parse("t.a+b-c://test.com").scheme());
     }
-
+    
 }
