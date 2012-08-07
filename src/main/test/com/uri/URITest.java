@@ -66,6 +66,10 @@ public class URITest {
         new URI().withScheme("1234");
     }
     
+    //
+    // Section 2.3 - Replacements of data octets, that represent characters from the unreserved set
+    //
+    
     @Test
     public void shouldDecodeHostWithPercentEncodedCharacters() throws URISyntaxException {
         URI uri = URI.parse("http://www.%74%65%73%74.com");
@@ -78,12 +82,12 @@ public class URITest {
     }
     
     @Test(expected=URISyntaxException.class)
-    public void shouldFailedWithInvalidLetterInOctet() throws URISyntaxException {
+    public void shouldFailWithInvalidLetterInOctet() throws URISyntaxException {
         URI.parse("http://www.ex%er%01.com");
     }
     
     @Test(expected=URISyntaxException.class)
-    public void shouldFailedWithDoublePercentageSigns() throws URISyntaxException {
+    public void shouldFailWithDoublePercentageSigns() throws URISyntaxException {
         URI.parse("http://www.tes%%t.com");
     }
     
