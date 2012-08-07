@@ -15,7 +15,7 @@ Syntax Specification (see section 1.3 of RFC 3986)
     SP - space
 
 
-### Percent-Encoding (2.1)
+#### Percent-Encoding (2.1)
 
 An 'octet' is a 8 bit character. Percent encoding is used to represent a data octet in a component when the corresponding character is outside the allowed set
 
@@ -29,7 +29,7 @@ example:
 
 
 
-### Reserved Characters (2.2)
+#### Reserved Characters (2.2)
 
 generic delimiters
 
@@ -39,7 +39,7 @@ subcomponent delimiters
 
     "!" / "$" / "&" / "'" / "(" / ")" / "*" / "+" / "," / ";" / "="
 
-Unreseved characters (2.3)
+#### Unreseved characters (2.3)
 
     [a - zA - Z] [0 - 9] '-' '.' '_' '~'
 
@@ -50,9 +50,12 @@ characters is therefore suggested!
 
 
 
-### Encoding / Decoding (2.4)
+#### Encoding / Decoding (2.4)
 
 Typically percent encoding is only applied when generating a URI from different components (scheme, host, path etc)
+
+
+### Syntax components (3)
 
 URI Syntax
 
