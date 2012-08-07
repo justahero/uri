@@ -14,10 +14,10 @@ public class URI {
     private final static String ALPHA          = "a-zA-Z";
     private final static String DIGIT          = "0-9";
     private final static String HEX            = "a-fA-F0-9";
-    private final static String RESERVED       = ALPHA + DIGIT + "-._~";
+    private final static String UNRESERVED     = ALPHA + DIGIT + "-._~";
     
-    private final static String RegExUserInfo  = "(["+RESERVED+"!$&'()*+,;=:]|%["+HEX+"]{2})+";
-    private final static String RegExNamedHost = "(?:(["+RESERVED+"!$&'()*+,;=]|%["+HEX+"]{2})*)";
+    private final static String RegExUserInfo  = "(["+UNRESERVED+"!$&'()*+,;=:]|%["+HEX+"]{2})+";
+    private final static String RegExNamedHost = "(?:(["+UNRESERVED+"!$&'()*+,;=]|%["+HEX+"]{2})*)";
     private final static String RegExPort      = "(["+DIGIT+"]{1,5})";
     private final static String RegExScheme    = "^(["+ALPHA+"]+["+ALPHA+DIGIT+"+-.]*)"; 
     
@@ -26,25 +26,25 @@ public class URI {
           RegExScheme+":" + // scheme
           "(?:" + // authority
               "\\/\\/" +
-              "(?:((?:["+RESERVED+"!$&'()*+,;=:]|%["+HEX+"]{2})+)@)?" + // user info
+              "(?:((?:["+UNRESERVED+"!$&'()*+,;=:]|%["+HEX+"]{2})+)@)?" + // user info
               "(?:" + // host
-                  "((?:["+RESERVED+"]|%["+HEX+"]{2})*)" + // named or ip4 host 
+                  "((?:["+UNRESERVED+"]|%["+HEX+"]{2})*)" + // named or ip4 host 
                   "|" +
                   "(?:(\\[["+HEX+":.]+\\]))" + // ipv6 host
                   "|" +
                   "(?:\\[v(.+)\\])" + // ip future host
               ")" +
               "(?::([0-9]+))?" + // port
-              "(/(?:["+RESERVED+"!$&'()*+,;=:@/]|%["+HEX+"]{2})*)?" + // path
+              "(/(?:["+UNRESERVED+"!$&'()*+,;=:@/]|%["+HEX+"]{2})*)?" + // path
           "|" + // no authority
               "(?:" +
-                  "(["+RESERVED+"%!$&'()*+,;=@]+["+RESERVED+"%!$&'()*+,;=:@]*)" +
+                  "(["+UNRESERVED+"%!$&'()*+,;=@]+["+UNRESERVED+"%!$&'()*+,;=:@]*)" +
                   "|" +
-                  "(?:(/["+RESERVED+"%!$&'()*+,;=:@]+))?" +
+                  "(?:(/["+UNRESERVED+"%!$&'()*+,;=:@]+))?" +
               ")" +
           ")" +
-          "(?:\\?(["+RESERVED+"%!$&'()*+,;=:@/?]*))?" + // query string
-          "(?:\\#(["+RESERVED+"%!$&'()*+,;=:@/?]*))?" + // fragment
+          "(?:\\?(["+UNRESERVED+"%!$&'()*+,;=:@/?]*))?" + // query string
+          "(?:\\#(["+UNRESERVED+"%!$&'()*+,;=:@/?]*))?" + // fragment
           "\\Z";
     
     private final static Pattern URIPattern;
