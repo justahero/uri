@@ -181,7 +181,7 @@ public class URITest {
     // Section 1.1.2 of RFC 3986
     //
     @Test
-    public void shouldParseFtpURICorrectly() throws URISyntaxException {
+    public void shouldParseFtpURI() throws URISyntaxException {
         URI uri = URI.parse("ftp://ftp.is.co.za/rfc/rfc1808.txt");
         URIAssert.equals("ftp", uri.scheme());
         URIAssert.equals("ftp.is.co.za", uri.host());
@@ -190,7 +190,7 @@ public class URITest {
     }
     
     @Test
-    public void shouldConstructFtpURICorrectly() throws URISyntaxException {
+    public void shouldConstructFtpURI() throws URISyntaxException {
         URI uri = new URI()
             .withScheme("ftp")
             .withHost("ftp.is.co.za")
@@ -199,7 +199,7 @@ public class URITest {
     }
     
     @Test
-    public void shouldParseHttpURICorrectly() throws URISyntaxException {
+    public void shouldParseHttpURI() throws URISyntaxException {
         URI uri = URI.parse("http://www.ietf.org/rfc/rfc2396.txt");
         URIAssert.equals("http", uri.scheme());
         URIAssert.equals("www.ietf.org", uri.host());
@@ -208,7 +208,7 @@ public class URITest {
     }
     
     @Test
-    public void shouldConstructHttpURICorrectly() throws URISyntaxException {
+    public void shouldConstructHttpURI() throws URISyntaxException {
         URI uri = new URI()
             .withScheme("http")
             .withHost("www.ietf.org")
@@ -217,7 +217,7 @@ public class URITest {
     }
     
     @Test
-    public void shouldParseLdapURICorrectly() throws URISyntaxException {
+    public void shouldParseLdapURI() throws URISyntaxException {
         URI uri = URI.parse("ldap://[2001:db8::7]/c=GB?objectClass?one");
         URIAssert.equals("ldap", uri.scheme());
         URIAssert.equals("[2001:db8::7]", uri.host());
@@ -227,7 +227,7 @@ public class URITest {
     }
     
     @Test
-    public void shouldConstructLdapURICorrectly() throws URISyntaxException {
+    public void shouldConstructLdapURI() throws URISyntaxException {
         URI uri = new URI()
             .withScheme("ldap")
             .withIPV6Host("[2001:db8::7]")
@@ -236,8 +236,71 @@ public class URITest {
         URIAssert.equals("ldap://[2001:db8::7]/c=GB?objectClass?one", uri.toASCII());
     }
     
-    // ldap://[2001:db8::7]/c=GB?objectClass?one
+    @Test
+    public void shouldParseMailtoURI() throws URISyntaxException {
+        URI uri = URI.parse("mailto:John.Doe@example.com");
+        URIAssert.equals("mailto", uri.scheme());
+        URIAssert.equals("John.Doe@example.com", uri.path());
+    }
+    
+    @Test
+    public void shouldConstructMailtoURI() throws URISyntaxException {
+        URI uri = new URI().withScheme("mailto").withPath("John.Doe@example.com");
+        URIAssert.equals("mailto:John.Doe@example.com", uri.toASCII());
+    }
+    
+    @Test
+    public void shouldParseNewsgroupURI() throws URISyntaxException {
+        URI uri = URI.parse("news:comp.infosystems.www.servers.unix");
+        URIAssert.equals("news", uri.scheme());
+        URIAssert.equals("comp.infosystems.www.servers.unix", uri.path());
+    }
+    
+    @Test
+    public void shouldConstructNewsgroupURI() throws URISyntaxException {
+        URI uri = new URI().withScheme("news").withPath("comp.infosystems.www.servers.unix");
+        URIAssert.equals("news:comp.infosystems.www.servers.unix", uri.toASCII());
+    }
+    
+    @Test
+    public void shouldParseTelURI() throws URISyntaxException {
+        URI uri = URI.parse("tel:+1-816-555-1212");
+        URIAssert.equals("tel", uri.scheme());
+        URIAssert.equals("+1-816-555-1212", uri.path());
+    }
+    
+    @Test
+    public void shouldConstructTelURI() throws URISyntaxException {
+        URI uri = new URI().withScheme("tel").withPath("+1-816-555-1212");
+        URIAssert.equals("tel:+1-816-555-1212", uri.toASCII());
+    }
+    
+    @Test
+    public void shouldParseTelnetURI() throws URISyntaxException {
+        URI uri = URI.parse("telnet://192.0.2.16:80/");
+        URIAssert.equals("telnet", uri.scheme());
+        URIAssert.equals("192.0.2.16", uri.host());
+        URIAssert.equals("80", uri.port());
+    }
+    
+    @Test
+    public void shouldConstructTelnetURI() throws URISyntaxException {
+        URI uri = new URI().withScheme("telnet").withHost("192.0.2.16").withPort(80);
+        URIAssert.equals("telnet://192.0.2.16:80", uri.toASCII());
+    }
+    
+    @Test
+    public void shouldParseUrnURI() throws URISyntaxException {
+        URI uri = URI.parse("urn:oasis:names:specification:docbook:dtd:xml:4.1.2");
+        URIAssert.equals("urn", uri.scheme());
+        URIAssert.equals("oasis:names:specification:docbook:dtd:xml:4.1.2", uri.path());
+    }
+    
+    @Test
+    public void shouldConstructUrnURI() throws URISyntaxException {
+        URI uri = new URI().withScheme("urn").withPath("oasis:names:specification:docbook:dtd:xml:4.1.2");
+        URIAssert.equals("urn:oasis:names:specification:docbook:dtd:xml:4.1.2", uri.toASCII());
+    }
 }
-
 
 

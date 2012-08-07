@@ -206,10 +206,7 @@ public class URI {
     }
     
     public String path() {
-        if (path != null) {
-            return path;
-        }
-        return null;
+        return path;
     }
     
     public String query() {
