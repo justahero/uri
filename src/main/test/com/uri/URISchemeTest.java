@@ -30,25 +30,19 @@ public class URISchemeTest {
         URI.parse("4http://www.test.com");
     }
     
+    @Test(expected=URISyntaxException.class)
+    public void shouldNotContainInvalidCharacters() throws URISyntaxException {
+        URI.parse("ft<>p://example.com");
+    }
+    
     @Test
     public void shouldAllowDigitsInScheme() throws URISyntaxException {
         URI uri = URI.parse("ft9p://example.com");
         URIAssert.equals("ft9p", uri.scheme());
     }
     
-    @Test
-    public void schemeMustNotContainInvalidCharacters() throws URISyntaxException {
-        URIAssert.exception("ft<>p://example.com");
-    }
-    
-    @Test
-    public void schemeMustNotBeNumbers() throws URISyntaxException {
-        URIAssert.exception("1234://test.com");
-        URIAssert.exception("99://test.com");
-    }
-    
     @Test(expected=URISyntaxException.class)
-    public void schemeMustContainHierarchicalComponent() throws URISyntaxException {
+    public void shouldMustContainHierarchicalComponent() throws URISyntaxException {
         new URI().withScheme("ftp").toASCII();
     }
     
