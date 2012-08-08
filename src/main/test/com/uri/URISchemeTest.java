@@ -47,13 +47,13 @@ public class URISchemeTest {
     }
     
     @Test
-    public void schemeMustStartWithLetter() throws URISyntaxException {
+    public void shouldStartWithLetter() throws URISyntaxException {
         URIAssert.equals("http", URI.parse("http://example").scheme());
         URIAssert.equals("ftp", URI.parse("ftp://user:pass@test.com/here").scheme());
     }
     
     @Test
-    public void schemeAllowsDotHyphenAndPlus() throws URISyntaxException {
+    public void shouldAllowDotHyphenAndPlus() throws URISyntaxException {
         URIAssert.equals("t.a+b-c", URI.parse("t.a+b-c://test.com").scheme());
     }
     
