@@ -175,12 +175,6 @@ public class URITest {
         URIAssert.equals("/test/foo/bar", uri.path());
     }
     
-    @Test
-    public void test() throws URISyntaxException {
-       URI.parse("ldap://[2001:db8::7]/c=GB?objectClass");
-        //URI.parse("ldap://[2001:db8::7]/c=GB?objectClass?one");
-    }
-    
     //
     // Section 1.1.2 of RFC 3986
     //
