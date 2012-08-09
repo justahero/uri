@@ -2,57 +2,76 @@ package com.uri;
 
 import java.net.URISyntaxException;
 
+import junit.framework.Assert;
+
 import org.junit.Test;
 
 public class URIUserInfoTest {
 
     // NOTE not really sure if this correct syntax or if there must be at least one character when a
     // '@' sign appears in the authority part
-    @Test
-    public void userInfoCannotBeEmptyIfAtSignIsPresent() throws URISyntaxException {
-        URIAssert.exception("http://@example.com");
+    @Test(expected=URISyntaxException.class)
+    public void shouldNotParseEmptyUserInfoWithAtSignPresent() throws URISyntaxException {
+        URI.parse("http://@example.com");
     }
     
     @Test
-    public void userInfoNameWithInvalidCharacter() throws URISyntaxException {
+    public void shouldNotParseInvalidCharacterInUsername() throws URISyntaxException {
         URIAssert.exception("http://te[]st:bla@example.com");
         URIAssert.exception("http://<tes>t:foo@example.com");
     }
     
     @Test
-    public void userInfoWithNameOnly() throws URISyntaxException {
-        URIAssert.user("http://username@example.com", "username", "");
+    public void shouldParseUsernameOnly() throws URISyntaxException {
+        URI uri = URI.parse("http://username@example.com");
+        URIAssert.equals("username", uri.username());
+        URIAssert.equals("", uri.userpass());
     }
     
     @Test
-    public void userInfoWithNameAndColon() throws URISyntaxException {
-        URIAssert.user("http://username:@example.com", "username", "");
+    public void shouldParseUsernameWithColon() throws URISyntaxException {
+        URI uri = URI.parse("http://username:@example.com");
+        URIAssert.equals("username", uri.username());
+        URIAssert.equals("", uri.userpass());
     }
     
     @Test
-    public void userWithNameAndPass() throws URISyntaxException {
-        URIAssert.user("http://foo:bar@example.com", "foo", "bar");
+    public void shouldParseUsernameAndPass() throws URISyntaxException {
+        URI uri = URI.parse("http://foo:bar@example.com");
+        URIAssert.equals("foo", uri.username());
+        URIAssert.equals("bar", uri.userpass());
+    }
+    
+    @Test(expected=URISyntaxException.class)
+    public void shouldNotParseWithOnlyUserpass() throws URISyntaxException {
+        URI.parse("http://:pass@example.com");
+    }
+    
+    @Test(expected=URISyntaxException.class)
+    public void shouldNotParseWithOnlyColonInUserinfo() throws URISyntaxException {
+        URI.parse("http://:@example.com");
+    }
+    
+    @Test(expected=URISyntaxException.class)
+    public void shouldNotParseThreePartsUserInfo() throws URISyntaxException {
+        URI.parse("http://test:double:pass@example.com");
+    }
+    
+    @Test(expected=URISyntaxException.class)
+    public void shouldNotParseUserInfoWithTrailingExtraColon() throws URISyntaxException {
+        URI.parse("http://test:bar:@example.com");
+    }
+    
+    @Test(expected=URISyntaxException.class)
+    public void shouldNotParseUserInfoWithLreadingExtraColon() throws URISyntaxException {
+        URI.parse("http://:bar:fault@example.com");
     }
     
     @Test
-    public void userInfoNameIsNotAllowedToHavePassOnly() throws URISyntaxException {
-        URIAssert.exception("http://:pass@example.com");
-    }
-    
-    public void userInfoNameMustNotHaveColonSeparatorOnly() {
-        URIAssert.exception("http://:@example.com");
-    }
-    
-    @Test
-    public void userInfoOnlyAllowsSingleColon() throws URISyntaxException {
-        URIAssert.exception("http://test:double:pass@example.com");
-        URIAssert.exception("http://test:bar:@example.com");
-        URIAssert.exception("http://:bar:fault@example.com");
-    }
-    
-    @Test
-    public void userNameAndPassAreEmptyWhenUserInfoNotGiven() throws URISyntaxException {
-        URIAssert.user("http://www.foobar.com", null, null);
+    public void shouldParseEmptyUserInfo() throws URISyntaxException {
+        URI uri = URI.parse("http://www.foobar.com");
+        Assert.assertNull(uri.username());
+        Assert.assertNull(uri.userpass());
     }
 
 }

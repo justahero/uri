@@ -14,7 +14,7 @@ public class URITest {
         Assert.assertEquals(null, uri.scheme());
         Assert.assertEquals(null, uri.userinfo());
         Assert.assertEquals(null, uri.host());
-        Assert.assertEquals(null, uri.port());
+        Assert.assertEquals(-1,   uri.port());
         Assert.assertEquals(null, uri.path());
         Assert.assertEquals(null, uri.query());
         Assert.assertEquals(null, uri.fragment());
@@ -175,12 +175,6 @@ public class URITest {
         URIAssert.equals("/test/foo/bar", uri.path());
     }
     
-    @Test
-    public void test() throws URISyntaxException {
-       URI.parse("ldap://[2001:db8::7]/c=GB?objectClass");
-        //URI.parse("ldap://[2001:db8::7]/c=GB?objectClass?one");
-    }
-    
     //
     // Section 1.1.2 of RFC 3986
     //
@@ -190,7 +184,7 @@ public class URITest {
         URIAssert.equals("ftp", uri.scheme());
         URIAssert.equals("ftp.is.co.za", uri.host());
         URIAssert.equals("/rfc/rfc1808.txt", uri.path());
-        URIAssert.equals("21", uri.inferredPort());
+        Assert.assertEquals(21, uri.inferredPort());
     }
     
     @Test
@@ -208,7 +202,7 @@ public class URITest {
         URIAssert.equals("http", uri.scheme());
         URIAssert.equals("www.ietf.org", uri.host());
         URIAssert.equals("/rfc/rfc2396.txt", uri.path());
-        URIAssert.equals("80", uri.inferredPort());
+        Assert.assertEquals(80, uri.inferredPort());
     }
     
     @Test
@@ -225,7 +219,7 @@ public class URITest {
         URI uri = URI.parse("ldap://[2001:db8::7]/c=GB?objectClass?one");
         URIAssert.equals("ldap", uri.scheme());
         URIAssert.equals("[2001:db8::7]", uri.host());
-        URIAssert.equals("389", uri.inferredPort());
+        Assert.assertEquals(389, uri.inferredPort());
         URIAssert.equals("/c=GB", uri.path());
         URIAssert.equals("objectClass?one", uri.query());
     }
@@ -284,7 +278,7 @@ public class URITest {
         URI uri = URI.parse("telnet://192.0.2.16:80/");
         URIAssert.equals("telnet", uri.scheme());
         URIAssert.equals("192.0.2.16", uri.host());
-        URIAssert.equals("80", uri.port());
+        Assert.assertEquals(80, uri.port());
     }
     
     @Test
@@ -305,6 +299,51 @@ public class URITest {
         URI uri = new URI().withScheme("urn").withPath("oasis:names:specification:docbook:dtd:xml:4.1.2");
         URIAssert.equals("urn:oasis:names:specification:docbook:dtd:xml:4.1.2", uri.toASCII());
     }
+    
+    //
+    // Section 3.2.3 of RFC 3986, default ports can be omitted
+    //
+    @Test
+    public void shouldParseHttpURIAndOmitDefaultPort() throws URISyntaxException {
+        URI uri = URI.parse("http://www.example.com:80/test");
+        Assert.assertEquals(80, uri.port());
+        URIAssert.equals("http://www.example.com/test", uri.toASCII());
+    }
+    
+    @Test
+    public void shouldConstructHttpUriAndOmitDefaultPort() throws URISyntaxException {
+        URI uri = new URI().withScheme("http").withHost("www.example.com").withPort(80);
+        URIAssert.equals("http://www.example.com", uri.toASCII());
+    }
+    
+    @Test
+    public void shouldParseFtpURIAndOmitDefaultPort() throws URISyntaxException {
+        URI uri = URI.parse("ftp://test:pass@unknown.com:21/test");
+        Assert.assertEquals(21, uri.port());
+        URIAssert.equals("ftp://test:pass@unknown.com/test", uri.toASCII());
+    }
+    
+    @Test
+    public void shouldNotOmitPortWhenParsingFtpURI() throws URISyntaxException {
+        URI uri = URI.parse("ftp://test:pass@example.com:4409/file");
+        Assert.assertEquals(4409, uri.port());
+        URIAssert.equals("ftp://test:pass@example.com:4409/file", uri.toASCII());
+    }
+    
+    @Test
+    public void shouldNotOmitPortWhenParsingUnknownScheme() throws URISyntaxException {
+        URI uri = URI.parse("unknown://hostname.com:1234/file/test");
+        Assert.assertEquals(1234, uri.port());
+        URIAssert.equals("unknown://hostname.com:1234/file/test", uri.toASCII());
+    }
+    
+    @Test
+    public void shouldOmitDefaultPortWhenParsingLdapURI() throws URISyntaxException {
+        URI uri = URI.parse("ldap://[2001:db8::7]:389/c=GB?objectClass?one");
+        Assert.assertEquals(389, uri.port());
+        URIAssert.equals("ldap://[2001:db8::7]/c=GB?objectClass?one", uri.toASCII());
+    }
 }
+
 
 
