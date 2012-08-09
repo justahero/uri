@@ -60,7 +60,7 @@ public class URI {
     private String username  = null;
     private String userpass  = null;
     private String host      = null;
-    private String port      = null;
+    private int    port      = -1;
     private String path      = null;
     private String query     = null;
     private String fragment  = null;
@@ -200,7 +200,7 @@ public class URI {
     
     public String userinfo() {
         if (username != null && userpass != null && !username.isEmpty()) {
-            String.format("%s:%s", username, userpass);
+            return String.format("%s:%s", username, userpass);
         }
         return null;
     }
@@ -209,7 +209,7 @@ public class URI {
         return host;
     }
     
-    public String port() {
+    public int port() {
         return port;
     }
     
@@ -244,17 +244,21 @@ public class URI {
     public String authority() {
         StringBuilder result = new StringBuilder();
         String userinfo = userinfo();
-        result.append(userinfo != null ? userinfo : "");
-        result.append(host != null ? host : "");
-        result.append(port != null ? ":" + port : "");
+        result.append(userinfo != null ? userinfo + "@" : "");
+        result.append(host != null ? host + "" : "");
+        
+        int defaultPort = inferredPort();
+        if (port != -1 && port != defaultPort) {
+            result.append(":" + port);
+        }
         return result.toString();
     }
     
-    public String inferredPort() {
+    public int inferredPort() {
         if (scheme != null && DefaultPortMap.containsKey(scheme)) {
-            return DefaultPortMap.get(scheme).toString();
+            return DefaultPortMap.get(scheme).intValue();
         }
-        return null;
+        return -1;
     }
     
     public String toASCII() throws URISyntaxException {
@@ -333,7 +337,8 @@ public class URI {
         if (portNumber < 1 || portNumber > 65535) {
             throw new URISyntaxException(port, "Invalid port number");
         }
-        this.port = port;
+        
+        this.port = portNumber;
     }
     
     private void parsePath(String path) {

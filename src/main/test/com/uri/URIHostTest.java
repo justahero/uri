@@ -2,6 +2,8 @@ package com.uri;
 
 import java.net.URISyntaxException;
 
+import junit.framework.Assert;
+
 import org.junit.Test;
 
 public class URIHostTest {
@@ -29,7 +31,7 @@ public class URIHostTest {
     
     @Test
     public void namedHostWithPortNumber() throws URISyntaxException {
-        URIAssert.equals("80", URI.parse("http://www.test.com:80").port());
+        Assert.assertEquals(80, URI.parse("http://www.test.com:80").port());
     }
     
     @Test
@@ -78,14 +80,14 @@ public class URIHostTest {
     @Test
     public void ipV6HostWithPort() throws URISyntaxException {
         URI uri = URI.parse("http://[1080:0:0:0:8:800:200C:417A]:4040");
-        URIAssert.equals("4040", uri.port());
+        Assert.assertEquals(4040, uri.port());
         URIAssert.equals("[1080:0:0:0:8:800:200C:417A]", uri.host());
     }
     
     @Test
     public void ipV6HostWithPortAndPathSeparator() throws URISyntaxException {
         URI uri = URI.parse("http://[1080:0:0:0:8:800:200C:417A]:4040/test");
-        URIAssert.equals("4040", uri.port());
+        Assert.assertEquals(4040, uri.port());
         URIAssert.equals("[1080:0:0:0:8:800:200C:417A]", uri.host());
     }
 }
