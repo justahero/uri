@@ -50,8 +50,9 @@ public class URIHostTest {
     }
 
     @Test
-    public void portSeparatorOnlyThrowsException() throws URISyntaxException {
-        URIAssert.exception("http://www.example.com:");
+    public void portSeparatorOnlyIsOmitted() throws URISyntaxException {
+        URI uri = URI.parse("http://www.example.com:");
+        URIAssert.equals(URI.parse("http://www.example.com").toASCII(), uri.toASCII());
     }
 
     @Test

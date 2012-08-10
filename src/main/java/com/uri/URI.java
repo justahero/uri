@@ -21,7 +21,6 @@ public class URI {
     
     private final static String RegExUserInfo  = "(["+COMMON+":]|"+PERCENT+")+";
     private final static String RegExNamedHost = "(?:(["+COMMON+"]|"+PERCENT+")*)";
-    private final static String RegExPort      = "(["+DIGIT+"]{1,5})";
     private final static String RegExScheme    = "^(["+ALPHA+"]+["+ALPHA+DIGIT+"+-.]*)"; 
     
     private final static String RegExURI =
@@ -37,7 +36,7 @@ public class URI {
                   "|" +
                   "(?:\\[v(.+)\\])" + // ip future host
               ")" +
-              "(?::([0-9]+))?" + // port
+              "(?::([0-9]*))?" + // port
               "(/(?:["+COMMON+":@/]|"+PERCENT+")*)?" + // path
           "|" + // no authority
               "(?:" +
@@ -53,7 +52,6 @@ public class URI {
     private final static Pattern URIPattern;
     private final static Pattern UserInfoPattern;
     private final static Pattern HostPattern;
-    private final static Pattern PortPattern;
     private final static Pattern SchemePattern;
     
     private String scheme    = null;
@@ -69,7 +67,6 @@ public class URI {
         URIPattern      = Pattern.compile(RegExURI);
         UserInfoPattern = Pattern.compile(RegExUserInfo);
         HostPattern     = Pattern.compile(RegExNamedHost);
-        PortPattern     = Pattern.compile(RegExPort);
         SchemePattern   = Pattern.compile(RegExScheme);
         
         DefaultPortMap.put("ftp",  21);
@@ -264,13 +261,17 @@ public class URI {
     public String toASCII() throws URISyntaxException {
         String authority = authority();
         String path = path();
+        if (path != null && path.compareTo("/") == 0) {
+            path = "";
+        }
+        
         if (authority.isEmpty() && path == null) {
             throw new URISyntaxException("", "URI is missing authority or path!");
         }
         
         StringBuilder builder = new StringBuilder();
         builder.append(site());
-        builder.append(path() != null ? path() : "");
+        builder.append(path != null ? path : "");
         builder.append(query != null ? "?" + query : "");
         builder.append(fragment != null ? "#" + fragment : "");
         
@@ -329,16 +330,13 @@ public class URI {
         if (port == null)
             return;
         
-        Matcher matcher = PortPattern.matcher(port);
-        if (!matcher.matches()) {
-            throw new URISyntaxException(port, "Invalid port");
+        if (!port.isEmpty()) {
+            int portNumber = Integer.valueOf(port);
+            if (portNumber < 1 || portNumber > 65535) {
+                throw new URISyntaxException(port, "Invalid port number");
+            }
+            this.port = portNumber;
         }
-        int portNumber = Integer.valueOf(port);
-        if (portNumber < 1 || portNumber > 65535) {
-            throw new URISyntaxException(port, "Invalid port number");
-        }
-        
-        this.port = portNumber;
     }
     
     private void parsePath(String path) {

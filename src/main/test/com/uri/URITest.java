@@ -343,6 +343,30 @@ public class URITest {
         Assert.assertEquals(389, uri.port());
         URIAssert.equals("ldap://[2001:db8::7]/c=GB?objectClass?one", uri.toASCII());
     }
+    
+    //
+    // Section 6.2.2 Syntax-based Normalization
+    //
+    
+    @Test
+    public void shouldCompareWithEquivalentURI() throws URISyntaxException {
+        URI uri = URI.parse("http://example.com");
+        URIAssert.equals(URI.parse("http://EXAMPLE.com").toASCII(), uri.toASCII());
+        URIAssert.equals(URI.parse("http://EXAMPLE.com:80/").toASCII(), uri.toASCII());
+    }
+    
+    //
+    // Section 6.2.3 Scheme-based normalization
+    //
+    
+    @Test
+    public void shouldNormalizeURIPort() throws URISyntaxException {
+        URI uri = URI.parse("http://example.com/");
+        URIAssert.equals(URI.parse("http://example.com/").toASCII(), uri.toASCII());
+        URIAssert.equals(URI.parse("http://example.com:/").toASCII(), uri.toASCII());
+        URIAssert.equals(URI.parse("http://example.com:80/").toASCII(), uri.toASCII());
+        URIAssert.equals(URI.parse("http://EXAMPLE.COM/").toASCII(), uri.toASCII());
+    }
 }
 
 
