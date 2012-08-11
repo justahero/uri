@@ -38,12 +38,8 @@ public class URI {
               ")" +
               "(?::([0-9]*))?" + // port
               "(/(?:["+COMMON+":@/]|"+PERCENT+")*)?" + // path
-          "|" + // no authority
-              "(?:" +
-                  "(["+COMMON+"@]+["+COMMON+":@]*)" +
-                  "|" +
-                  "(?:(/["+COMMON+":@]+))?" +
-              ")" +
+              "|" + // no authority
+              "(/?["+COMMON+":@]+(/["+COMMON+":@]+)*/?)?" +
           ")" +
           "(?:\\?(["+COMMON+":@/?]*))?" + // query string
           "(?:\\#(["+COMMON+":@/?]*))?" + // fragment

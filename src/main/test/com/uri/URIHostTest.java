@@ -46,7 +46,7 @@ public class URIHostTest {
     
     @Test
     public void ipV4HostWithPathSeparator() throws URISyntaxException {
-        URIAssert.host("http://127.0.0.1/", "127.0.0.1");
+        URIAssert.equals("127.0.0.1", URI.parse("http://127.0.0.1/").host());
     }
 
     @Test
