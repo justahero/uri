@@ -55,9 +55,9 @@ public class URIHostTest {
         URIAssert.equals(URI.parse("http://www.example.com").toASCII(), uri.toASCII());
     }
 
-    @Test
+    @Test(expected=URISyntaxException.class)
     public void portContainsInvalidCharacter() throws URISyntaxException {
-        URIAssert.exception("http://www.example.com:9a");
+        URI.parse("http://www.example.com:9a");
     }
     
     @Test

@@ -164,12 +164,6 @@ public class URITest {
     }
     
     @Test
-    public void shouldParseURIWithSeveralSlashesInPath() throws URISyntaxException {
-        URI uri = URI.parse("http://example.com/rfc/rfc");
-        URIAssert.equals("/rfc/rfc", uri.path());
-    }
-    
-    @Test
     public void shouldConstructURIWithSeveralSlashesInPath() throws URISyntaxException {
         URI uri = new URI().withPath("/test/foo/bar");
         URIAssert.equals("/test/foo/bar", uri.path());
