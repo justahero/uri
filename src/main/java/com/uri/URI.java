@@ -22,7 +22,7 @@ public class URI {
     private final static String RegExUserInfo  = "(["+COMMON+":]|"+PERCENT+")+";
     private final static String RegExScheme    = "^(["+ALPHA+"]+["+ALPHA+DIGIT+"+-.]*)";
     
-    private final static String RegExNamedHost = "["+UNRESERVED+"%]+";
+    private final static String RegExNamedHost = "[a-zA-Z0-9-._~%]+";
     private final static String RegExIPV6Host  = "\\[[a-fA-F0-9.:]+\\]";
     private final static String RegExIPFuture  = "/[v(.+)/]";
     private final static String RegExHost      = "("+RegExNamedHost+"|"+RegExIPV6Host+"|"+RegExIPFuture+")?";
@@ -313,11 +313,11 @@ public class URI {
     }
     
     private void parseHost(String host) throws URISyntaxException {
-        if (IPV6HostPattern.matcher(host).find()) {
+        if (IPV6HostPattern.matcher(host).matches()) {
             this.host = host;
-        } else if (IPFuturePattern.matcher(host).find()) {
+        } else if (IPFuturePattern.matcher(host).matches()) {
             this.host = host;
-        } else if (NamedHostPattern.matcher(host).find()) {
+        } else if (NamedHostPattern.matcher(host).matches()) {
             this.host = URIUtils.normalizeString(host);
         } else {
             throw new URISyntaxException(host, "Host is not valid");
