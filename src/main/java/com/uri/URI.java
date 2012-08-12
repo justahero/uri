@@ -29,20 +29,26 @@ public class URI {
           "(?:" + // authority
               "\\/\\/" +
               "(?:((?:["+COMMON+":]|"+PERCENT+")+)@)?" + // user info
-              "(?:" + // host
-                  "((?:["+UNRESERVED+"]|"+PERCENT+")*)" + // named or ip4 host 
+              "(" + // host
+                  "(?:["+UNRESERVED+"]|"+PERCENT+")*" + // named or ip4 host 
                   "|" +
-                  "(?:(\\[["+HEX+":.]+\\]))" + // ipv6 host
+                  "(?:\\[["+HEX+":.]+\\])" + // ipv6 host
                   "|" +
-                  "(?:\\[v(.+)\\])" + // ip future host
-              ")" +
+                  "(?:\\[v[.]+\\])" + // ip future host
+              ")?" +
               "(?::([0-9]*))?" + // port
               "(/(?:["+COMMON+":@/]|"+PERCENT+")*)?" + // path
               "|" + // no authority
               "(/?["+COMMON+":@]+(/["+COMMON+":@]+)*/?)?" +
           ")" +
-          "(?:\\?(["+COMMON+":@/?]*))?" + // query string
-          "(?:\\#(["+COMMON+":@/?]*))?" + // fragment
+          "|" +
+          "(?:" +
+              "(["+COMMON+"@]+(/["+COMMON+":@]+)*/?)" +
+              "|" +
+              "(?:(/["+COMMON+":@]+)+/?)" +
+          ")?" +
+          "(\\?["+COMMON+":@/?]*)?" + // query string
+          "(\\#["+COMMON+":@/?]*)?" + // fragment
           "\\Z";
     
     private final static Pattern URIPattern;
@@ -130,7 +136,8 @@ public class URI {
         System.out.println("Parsing: " + url);
         Matcher matcher = URIPattern.matcher(url);
         if (matcher.find()) {
-            if (matcher.end() != url.length()) {
+            System.out.println(" -> " + matcher.start() + ", " + matcher.end());
+            if (matcher.start() > 0 || matcher.end() != url.length()) {
                 throw new URISyntaxException(url, "Some components could not be parsed!");
             }
             for (int i = 1; i < matcher.groupCount(); i++) {
@@ -139,30 +146,26 @@ public class URI {
             
             String scheme    = matcher.group(1);
             String userInfo  = matcher.group(2);
-            String namedHost = matcher.group(3);
-            String ipv6Host  = matcher.group(4);
-            //String ipFuture  = matcher.group(5);
-            String port      = matcher.group(6);
-            String path      = matcher.group(7);
+            String host      = matcher.group(3);
+            String port      = matcher.group(4);
+            
+            String path      = matcher.group(5);
             if (path == null) {
-                path = matcher.group(8);
+                path = matcher.group(6);
             }
             if (path == null) {
-                path = matcher.group(9);
+                path = matcher.group(7);
             }
-            String query = matcher.group(10);
+            
+            String query = matcher.group(8);
             
             URI uri = new URI()
                 .withScheme(scheme)
                 .withUserInfo(userInfo)
                 .withPort(port)
                 .withPath(path)
-                .withQuery(query);
-            if (namedHost != null)
-                uri.withHost(namedHost);
-            if (ipv6Host != null)
-                uri.withIPV6Host(ipv6Host);
-            
+                .withQuery(query)
+                .withHost(host);
             return uri;
         }
         throw new URISyntaxException(url, "Some components could not be parsed!");
@@ -192,10 +195,10 @@ public class URI {
     }
     
     public String userinfo() {
-        if (username != null && userpass != null && !username.isEmpty()) {
-            return String.format("%s:%s", username, userpass);
-        }
-        return null;
+        String userinfo = "";
+        userinfo += (username != null) ? username : "";
+        userinfo += (userpass != null && !userpass.isEmpty()) ? ":" + userpass : "";
+        return userinfo.isEmpty() ? null : userinfo;
     }
     
     public String host() {
@@ -237,7 +240,7 @@ public class URI {
     public String authority() {
         StringBuilder result = new StringBuilder();
         String userinfo = userinfo();
-        result.append(userinfo != null ? userinfo + "@" : "");
+        result.append(userinfo != null && !userinfo.isEmpty() ? userinfo + "@" : "");
         result.append(host != null ? host + "" : "");
         
         int defaultPort = inferredPort();
@@ -266,14 +269,15 @@ public class URI {
         }
         
         StringBuilder builder = new StringBuilder();
-        builder.append(site());
+        String site = site();
+        builder.append(site != null ? site : "");
         builder.append(path != null ? path : "");
         builder.append(query != null ? "?" + query : "");
         builder.append(fragment != null ? "#" + fragment : "");
         
         String uri = builder.toString();
         Matcher matcher = URIPattern.matcher(uri);
-        if (!matcher.find()) {
+        if (!matcher.find() || uri.isEmpty()) {
             throw new URISyntaxException(uri, "URI representation is not valid!"); 
         }
         return uri;
