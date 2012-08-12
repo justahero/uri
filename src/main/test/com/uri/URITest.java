@@ -222,7 +222,7 @@ public class URITest {
     public void shouldConstructLdapURI() throws URISyntaxException {
         URI uri = new URI()
             .withScheme("ldap")
-            .withIPV6Host("[2001:db8::7]")
+            .withHost("[2001:db8::7]")
             .withPath("/c=GB")
             .withQuery("objectClass?one");
         URIAssert.equals("ldap://[2001:db8::7]/c=GB?objectClass?one", uri.toASCII());

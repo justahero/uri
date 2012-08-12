@@ -20,41 +20,42 @@ public class URI {
     private final static String PERCENT        = "%["+HEX+"]{2}";
     
     private final static String RegExUserInfo  = "(["+COMMON+":]|"+PERCENT+")+";
-    private final static String RegExNamedHost = "(?:(["+COMMON+"]|"+PERCENT+")*)";
-    private final static String RegExScheme    = "^(["+ALPHA+"]+["+ALPHA+DIGIT+"+-.]*)"; 
+    private final static String RegExScheme    = "^(["+ALPHA+"]+["+ALPHA+DIGIT+"+-.]*)";
+    
+    private final static String RegExNamedHost = "["+UNRESERVED+"%]+";
+    private final static String RegExIPV6Host  = "\\[[a-fA-F0-9.:]+\\]";
+    private final static String RegExIPFuture  = "/[v(.+)/]";
+    private final static String RegExHost      = "("+RegExNamedHost+"|"+RegExIPV6Host+"|"+RegExIPFuture+")?";
     
     private final static String RegExURI =
           "\\A" +
-          RegExScheme+":" + // scheme
           "(?:" + // authority
-              "\\/\\/" +
+              RegExScheme+":" + // scheme
+              "//" +
               "(?:((?:["+COMMON+":]|"+PERCENT+")+)@)?" + // user info
-              "(" + // host
-                  "(?:["+UNRESERVED+"]|"+PERCENT+")*" + // named or ip4 host 
-                  "|" +
-                  "(?:\\[["+HEX+":.]+\\])" + // ipv6 host
-                  "|" +
-                  "(?:\\[v[.]+\\])" + // ip future host
-              ")?" +
+              RegExHost +
               "(?::([0-9]*))?" + // port
               "(/(?:["+COMMON+":@/]|"+PERCENT+")*)?" + // path
               "|" + // no authority
               "(/?["+COMMON+":@]+(/["+COMMON+":@]+)*/?)?" +
           ")" +
           "|" +
-          "(?:" +
-              "(["+COMMON+"@]+(/["+COMMON+":@]+)*/?)" +
+          "(" +
+              "["+COMMON+"%@]+(/["+COMMON+":%@]+)*/?" +
               "|" +
-              "(?:(/["+COMMON+":@]+)+/?)" +
-          ")?" +
+              "(/["+COMMON+":@]+)+/?" +
+          ")" +
           "(\\?["+COMMON+":@/?]*)?" + // query string
           "(\\#["+COMMON+":@/?]*)?" + // fragment
           "\\Z";
     
     private final static Pattern URIPattern;
     private final static Pattern UserInfoPattern;
-    private final static Pattern HostPattern;
     private final static Pattern SchemePattern;
+    
+    private final static Pattern NamedHostPattern;
+    private final static Pattern IPV6HostPattern;
+    private final static Pattern IPFuturePattern;
     
     private String scheme    = null;
     private String username  = null;
@@ -68,8 +69,11 @@ public class URI {
     static {
         URIPattern      = Pattern.compile(RegExURI);
         UserInfoPattern = Pattern.compile(RegExUserInfo);
-        HostPattern     = Pattern.compile(RegExNamedHost);
         SchemePattern   = Pattern.compile(RegExScheme);
+        
+        NamedHostPattern = Pattern.compile(RegExNamedHost);
+        IPV6HostPattern  = Pattern.compile(RegExIPV6Host);
+        IPFuturePattern  = Pattern.compile(RegExIPFuture);
         
         DefaultPortMap.put("ftp",  21);
         DefaultPortMap.put("http", 80);
@@ -80,12 +84,7 @@ public class URI {
     }
     
     public URI withHost(String host) throws URISyntaxException {
-        parseNamedHost(host);
-        return this;
-    }
-    
-    public URI withIPV6Host(String ipv6Host) {
-        parseIpV6Host(ipv6Host);
+        parseHost(host);
         return this;
     }
     
@@ -144,12 +143,11 @@ public class URI {
                 System.out.println("  " + i + ": " + matcher.group(i));
             }
             
-            String scheme    = matcher.group(1);
-            String userInfo  = matcher.group(2);
-            String host      = matcher.group(3);
-            String port      = matcher.group(4);
-            
-            String path      = matcher.group(5);
+            String scheme   = matcher.group(1);
+            String userInfo = matcher.group(2);
+            String host     = matcher.group(3);
+            String port     = matcher.group(4);
+            String path     = matcher.group(5);
             if (path == null) {
                 path = matcher.group(6);
             }
@@ -234,7 +232,7 @@ public class URI {
             return builder.toString();
         }
         
-        return null;
+        return "";
     }
     
     public String authority() {
@@ -260,6 +258,8 @@ public class URI {
     public String toASCII() throws URISyntaxException {
         String authority = authority();
         String path = path();
+        String site = site();
+        
         if (path != null && path.compareTo("/") == 0) {
             path = "";
         }
@@ -269,7 +269,6 @@ public class URI {
         }
         
         StringBuilder builder = new StringBuilder();
-        String site = site();
         builder.append(site != null ? site : "");
         builder.append(path != null ? path : "");
         builder.append(query != null ? "?" + query : "");
@@ -313,17 +312,16 @@ public class URI {
         return matcher.matches();
     }
     
-    private void parseNamedHost(String namedHost) throws URISyntaxException {
-        namedHost = URIUtils.normalizeString(namedHost);
-        Matcher matcher = HostPattern.matcher(namedHost);
-        if (!matcher.matches()) {
-            throw new URISyntaxException(namedHost, "Host is not valid");
+    private void parseHost(String host) throws URISyntaxException {
+        if (IPV6HostPattern.matcher(host).find()) {
+            this.host = host;
+        } else if (IPFuturePattern.matcher(host).find()) {
+            this.host = host;
+        } else if (NamedHostPattern.matcher(host).find()) {
+            this.host = URIUtils.normalizeString(host);
+        } else {
+            throw new URISyntaxException(host, "Host is not valid");
         }
-        host = namedHost;
-    }
-    
-    private void parseIpV6Host(String ipV6Host) {
-        host = ipV6Host;
     }
     
     private void parsePort(String port) throws URISyntaxException {
