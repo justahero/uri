@@ -72,6 +72,13 @@ public class URIPathTest {
         URI uri = URI.parse("http:path!$&'()*+,;=");
         URIAssert.equals("path!$&'()*+,;=", uri.path());
     }
+    
+    @Test
+    public void shouldParseRelativePath() throws URISyntaxException {
+        URI uri = URI.parse("/relative/path/to/file");
+        Assert.assertNull(uri.scheme());
+        Assert.assertNull(uri.authority());
+    }
 }
 
 

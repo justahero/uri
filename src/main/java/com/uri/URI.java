@@ -155,6 +155,9 @@ public class URI {
             if (path == null) {
                 path = matcher.group(7);
             }
+            if (path == null) {
+                path = matcher.group(8);
+            }
             
             String query = matcher.group(11);
             
@@ -224,16 +227,11 @@ public class URI {
         String authority = authority();
         String scheme = scheme();
         
-        if (scheme != null && authority != null) {
-            StringBuilder builder = new StringBuilder();
-            builder.append(scheme != null ? scheme + ":" : "");
-            if (!authority.isEmpty()) {
-                builder.append("//").append(authority);
-            }
-            return builder.toString();
-        }
+        StringBuilder builder = new StringBuilder();
+        builder.append(scheme != null ? scheme + ":" : "");
+        builder.append(authority != null ? "//" + authority : "");
         
-        return "";
+        return (builder.length() > 0) ? builder.toString() : null;
     }
     
     public String authority() {
@@ -246,7 +244,7 @@ public class URI {
         if (port != -1 && port != defaultPort) {
             result.append(":" + port);
         }
-        return result.toString();
+        return (result.length() > 0) ? result.toString() : null;
     }
     
     public int inferredPort() {
@@ -265,7 +263,7 @@ public class URI {
             path = "";
         }
         
-        if (authority.isEmpty() && path == null) {
+        if (authority == null && path == null) {
             throw new URISyntaxException("", "URI is missing authority or path!");
         }
         
@@ -327,16 +325,16 @@ public class URI {
         }
     }
     
-    private void parseNamedHost(String host) {
-        this.host = URIUtils.normalizeString(host);
+    private void parseNamedHost(String namedHost) {
+        this.host = URIUtils.normalizeString(namedHost);
     }
 
-    private void parseIPV6Host(String host) {
-        this.host = host;
+    private void parseIPV6Host(String ipv6Host) {
+        this.host = ipv6Host;
     }
     
-    private void parseIPFutureHost(String host) {
-        this.host = host;
+    private void parseIPFutureHost(String ipFutureHost) {
+        this.host = ipFutureHost;
     }
     
     private void parsePort(String port) throws URISyntaxException {
