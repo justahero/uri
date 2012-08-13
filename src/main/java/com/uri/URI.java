@@ -22,8 +22,8 @@ public class URI {
     private final static String RegExUserInfo  = "(["+COMMON+":]|"+PERCENT+")+";
     private final static String RegExScheme    = "^(["+ALPHA+"]+["+ALPHA+DIGIT+"+-.]*)";
     
-    private final static String RegExNamedHost = "[a-zA-Z0-9-._~%]+";
-    private final static String RegExIPV6Host  = "\\[[a-fA-F0-9:.]+\\]";
+    private final static String RegExNamedHost = "(?:["+UNRESERVED+"]|"+PERCENT+")*";
+    private final static String RegExIPV6Host  = "\\[["+HEX+":.]+\\]";
     private final static String RegExIPFuture  = "/[v(.+)/]";
     private final static String RegExHost      = "("+RegExNamedHost+"|"+RegExIPV6Host+"|"+RegExIPFuture+")?";
     
