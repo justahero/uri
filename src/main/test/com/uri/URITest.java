@@ -130,13 +130,18 @@ public class URITest {
         URIAssert.equals("http:path", uri.toASCII());
     }
     
-    // TODO check if this is combination of scheme/path or simply a path
     @Test
     public void shouldParseWithSchemeAndPath() throws URISyntaxException {
         URI uri = URI.parse("http:path");
         URIAssert.equals("http:path", uri.toASCII());
         URIAssert.equals("http", uri.scheme());
         URIAssert.equals("path", uri.path());
+    }
+    
+    @Test
+    public void shouldConstructURIWithSchemeAndPath() throws URISyntaxException {
+        URI uri = new URI().withScheme("http").withPath("path");
+        URIAssert.equals("http:path", uri.toASCII());
     }
     
     @Test

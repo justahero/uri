@@ -22,16 +22,16 @@ public class URI {
     private final static String RegExUserInfo  = "(["+COMMON+":]|"+PERCENT+")+";
     private final static String RegExScheme    = "^(["+ALPHA+"]+["+ALPHA+DIGIT+"+-.]*)";
     
-    //private final static String RegExNamedHost = "[a-zA-Z0-9-._~]+|%[a-fA-F0-9]{2}";
     private final static String RegExNamedHost = "[a-zA-Z0-9-._~%]+";
-    private final static String RegExIPV6Host  = "\\[[a-fA-F0-9.:]+\\]";
+    private final static String RegExIPV6Host  = "\\[[a-fA-F0-9:.]+\\]";
     private final static String RegExIPFuture  = "/[v(.+)/]";
     private final static String RegExHost      = "("+RegExNamedHost+"|"+RegExIPV6Host+"|"+RegExIPFuture+")?";
     
     private final static String RegExURI =
           "\\A" +
+          "(?:" +
+          RegExScheme+":" + // scheme
           "(?:" + // authority
-              RegExScheme+":" + // scheme
               "//" +
               "(?:((?:["+COMMON+":]|"+PERCENT+")+)@)?" + // user info
               RegExHost +
@@ -46,7 +46,8 @@ public class URI {
               "|" +
               "(/["+COMMON+":@]+)+/?" +
           ")" +
-          "(\\?["+COMMON+":@/?]*)?" + // query string
+          ")" +
+          "(?:\\?(["+COMMON+":@/?]*))?" + // query string
           "(\\#["+COMMON+":@/?]*)?" + // fragment
           "\\Z";
     
@@ -66,8 +67,6 @@ public class URI {
     private String path      = null;
     private String query     = null;
     private String fragment  = null;
-    
-    private URIHostType hostType = URIHostType.Unknown;
     
     static {
         URIPattern      = Pattern.compile(RegExURI);
@@ -134,16 +133,15 @@ public class URI {
     }
     
     public static URI parse(String url) throws URISyntaxException {
-        //url = URIUtils.removePercentEncodedCharacters(url);
         System.out.println("Parsing: " + url);
         Matcher matcher = URIPattern.matcher(url);
         if (matcher.find()) {
+            for (int i = 1; i < matcher.groupCount(); i++) {
+                System.out.println("  " + i + ": " + matcher.group(i));
+            }
             System.out.println(" -> " + matcher.start() + ", " + matcher.end());
             if (matcher.start() > 0 || matcher.end() != url.length()) {
                 throw new URISyntaxException(url, "Some components could not be parsed!");
-            }
-            for (int i = 1; i < matcher.groupCount(); i++) {
-                System.out.println("  " + i + ": " + matcher.group(i));
             }
             
             String scheme   = matcher.group(1);
@@ -158,7 +156,7 @@ public class URI {
                 path = matcher.group(7);
             }
             
-            String query = matcher.group(8);
+            String query = matcher.group(11);
             
             URI uri = new URI()
                 .withScheme(scheme)
@@ -315,7 +313,6 @@ public class URI {
     }
     
     private void parseHost(String host) throws URISyntaxException {
-        this.hostType = URIHostType.Unknown;
         if (host == null) {
             return;
         }
@@ -331,17 +328,14 @@ public class URI {
     }
     
     private void parseNamedHost(String host) {
-        this.hostType = URIHostType.NamedHost;
         this.host = URIUtils.normalizeString(host);
     }
 
     private void parseIPV6Host(String host) {
-        this.hostType = URIHostType.IPFuture;
         this.host = host;
     }
     
     private void parseIPFutureHost(String host) {
-        this.hostType = URIHostType.IPV6Host;
         this.host = host;
     }
     
@@ -358,8 +352,11 @@ public class URI {
         }
     }
     
-    private void parsePath(String path) {
+    private void parsePath(String path) throws URISyntaxException {
         if (path != null) {
+            if (path.startsWith("//")) {
+                throw new URISyntaxException(path, "Path component must not start with '//'");
+            }
             this.path = (host != null && !path.startsWith("/")) ? "/" + path : path;
         }
     }

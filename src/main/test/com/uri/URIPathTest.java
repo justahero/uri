@@ -68,14 +68,9 @@ public class URIPathTest {
     }
     
     @Test
-    public void shouldParseAbsolutePathWithSubDelims() {
-        
-    }
-    
-    @Test
-    public void shouldParseNoSchemePath() throws URISyntaxException {
-        // TODO
-        //URIAssert.equals("test", URI.parse("test").path());
+    public void shouldParseAbsolutePathWithSubDelims() throws URISyntaxException {
+        URI uri = URI.parse("http:path!$&'()*+,;=");
+        URIAssert.equals("path!$&'()*+,;=", uri.path());
     }
 }
 
