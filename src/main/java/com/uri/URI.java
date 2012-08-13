@@ -326,7 +326,7 @@ public class URI {
     }
     
     private void parseNamedHost(String namedHost) {
-        this.host = URIUtils.normalizeString(namedHost);
+        this.host = URIUtils.normalizeString(namedHost, false);
     }
 
     private void parseIPV6Host(String ipv6Host) {
@@ -356,6 +356,7 @@ public class URI {
                 throw new URISyntaxException(path, "Path component must not start with '//'");
             }
             this.path = (host != null && !path.startsWith("/")) ? "/" + path : path;
+            this.path = URIUtils.normalizeString(this.path, true);
         }
     }
     

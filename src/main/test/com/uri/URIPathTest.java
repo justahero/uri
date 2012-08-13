@@ -15,10 +15,23 @@ public class URIPathTest {
     }
     
     @Test
+    public void shouldParseURIWithPathSeparator() throws URISyntaxException {
+        URI uri = URI.parse("http://www.example.com/");
+        Assert.assertNotNull(uri.path());
+        URIAssert.equals("/", uri.path());
+    }
+    
+    @Test
     public void shouldConstructURIWithoutPath() throws URISyntaxException {
         URI uri = new URI().withScheme("http").withHost("test.de");
         Assert.assertEquals(null, uri.path());
         Assert.assertEquals("http://test.de", uri.toASCII());
+    }
+    
+    @Test
+    public void shouldParseURIWithEmptyPath() throws URISyntaxException {
+        URI uri = URI.parse("http://www.example.com");
+        Assert.assertNull(uri.path());
     }
     
     //
@@ -29,12 +42,6 @@ public class URIPathTest {
     public void shouldParseURIWithSeveralSlashesInPath() throws URISyntaxException {
         URI uri = URI.parse("http://example.com/rfc/rfc");
         URIAssert.equals("/rfc/rfc", uri.path());
-    }
-    
-    @Test
-    public void shouldParseURIWithEmptyPath() throws URISyntaxException {
-        Assert.assertNull(URI.parse("http://www.example.com").path());
-        URIAssert.equals("/", URI.parse("http://www.example.com/").path());
     }
     
     @Test
@@ -89,6 +96,41 @@ public class URIPathTest {
         Assert.assertNull(uri.authority());
         URIAssert.equals("/relative/foo/bar", uri.path());
         URIAssert.equals("/relative/foo/bar", uri.toASCII());
+    }
+    
+    @Test
+    public void shouldParseRelativePathWithSubDelims() throws URISyntaxException {
+        URI uri = URI.parse("/relative/!$&'()*+,;=/test");
+        Assert.assertNotNull(uri.path());
+        URIAssert.equals("/relative/!$&'()*+,;=/test", uri.path());
+    }
+    
+    //
+    // Example URIs in section 3.3
+    //
+    
+    @Test
+    public void shouldParseEMailURIWithPath() throws URISyntaxException {
+        URI uri = URI.parse("mailto:fred@example.com");
+        URIAssert.equals("fred@example.com", uri.path());
+    }
+    
+    @Test
+    public void shouldParsePathWithPercentEncodedOctetsAndNoScheme() throws URISyntaxException {
+        URI uri = URI.parse("http://example.com/test%20/");
+        URIAssert.equals("/test%20/", uri.path());
+    }
+    
+    @Test
+    public void shouldConstructRelativePathWithPercentEncodedLetters() throws URISyntaxException {
+        URI uri = new URI().withPath("/%74%65%73%74/foo");
+        URIAssert.equals("/test/foo", uri.path());
+    }
+    
+    @Test
+    public void shouldConstructRelativePathWithUpperCasePercentEncodedLetters() throws URISyntaxException {
+        URI uri = new URI().withPath("/%46%4f%4F/bar");
+        URIAssert.equals("/FOO/bar", uri.path());
     }
 }
 
