@@ -22,7 +22,8 @@ public class URI {
     private final static String RegExUserInfo  = "(["+COMMON+":]|"+PERCENT+")+";
     private final static String RegExScheme    = "^(["+ALPHA+"]+["+ALPHA+DIGIT+"+-.]*)";
     
-    private final static String RegExNamedHost = "[a-zA-Z0-9-._~]+|%[a-fA-F0-9]{2}";
+    //private final static String RegExNamedHost = "[a-zA-Z0-9-._~]+|%[a-fA-F0-9]{2}";
+    private final static String RegExNamedHost = "[a-zA-Z0-9-._~%]+";
     private final static String RegExIPV6Host  = "\\[[a-fA-F0-9.:]+\\]";
     private final static String RegExIPFuture  = "/[v(.+)/]";
     private final static String RegExHost      = "("+RegExNamedHost+"|"+RegExIPV6Host+"|"+RegExIPFuture+")?";
@@ -65,6 +66,8 @@ public class URI {
     private String path      = null;
     private String query     = null;
     private String fragment  = null;
+    
+    private URIHostType hostType = URIHostType.Unknown;
     
     static {
         URIPattern      = Pattern.compile(RegExURI);
@@ -283,12 +286,11 @@ public class URI {
     }
     
     private void parseScheme(String scheme) throws URISyntaxException {
-        if (scheme == null || scheme.isEmpty()) {
-            throw new URISyntaxException(scheme, "No scheme given");
-        }
-        Matcher matcher = SchemePattern.matcher(scheme);
-        if (!matcher.matches()) {
-            throw new URISyntaxException(scheme, "No valid scheme");
+        if (scheme != null) {
+            Matcher matcher = SchemePattern.matcher(scheme);
+            if (!matcher.matches()) {
+                throw new URISyntaxException(scheme, "No valid scheme");
+            }
         }
         this.scheme = scheme;
     }
@@ -313,18 +315,34 @@ public class URI {
     }
     
     private void parseHost(String host) throws URISyntaxException {
+        this.hostType = URIHostType.Unknown;
         if (host == null) {
             return;
         }
-        if (IPV6HostPattern.matcher(host).matches()) {
-            this.host = host;
+        if (NamedHostPattern.matcher(host).matches()) {
+            parseNamedHost(host);
+        } else if (IPV6HostPattern.matcher(host).matches()) {
+            parseIPV6Host(host);
         } else if (IPFuturePattern.matcher(host).matches()) {
-            this.host = host;
-        } else if (NamedHostPattern.matcher(host).matches()) {
-            this.host = URIUtils.normalizeString(host);
+            parseIPFutureHost(host);
         } else {
             throw new URISyntaxException(host, "Host is not valid");
         }
+    }
+    
+    private void parseNamedHost(String host) {
+        this.hostType = URIHostType.NamedHost;
+        this.host = URIUtils.normalizeString(host);
+    }
+
+    private void parseIPV6Host(String host) {
+        this.hostType = URIHostType.IPFuture;
+        this.host = host;
+    }
+    
+    private void parseIPFutureHost(String host) {
+        this.hostType = URIHostType.IPV6Host;
+        this.host = host;
     }
     
     private void parsePort(String port) throws URISyntaxException {
