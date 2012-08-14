@@ -132,6 +132,11 @@ public class URIPathTest {
         URI uri = new URI().withPath("/%46%4f%4F/bar");
         URIAssert.equals("/FOO/bar", uri.path());
     }
+    
+    @Test(expected=URISyntaxException.class)
+    public void shouldNotParseRelativePathWithMisformedPercentOctet() throws URISyntaxException {
+        new URI().withPath("/foo/%gg/");
+    }
 }
 
 

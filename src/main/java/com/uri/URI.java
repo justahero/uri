@@ -42,9 +42,9 @@ public class URI {
           ")" +
           "|" +
           "(" +
-              "["+COMMON+"%@]+(/["+COMMON+":%@]+)*/?" +
+              "["+COMMON+"%@]+(?:/["+COMMON+":%@]+)*/?" +
               "|" +
-              "(/["+COMMON+":@]+)+/?" +
+              "(?:/["+COMMON+":@]+)+/?" +
           ")" +
           ")" +
           "(?:\\?(["+COMMON+":@/?]*))?" + // query string
@@ -158,8 +158,7 @@ public class URI {
             if (path == null) {
                 path = matcher.group(8);
             }
-            
-            String query = matcher.group(11);
+            String query = matcher.group(9);
             
             URI uri = new URI()
                 .withScheme(scheme)
