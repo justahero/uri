@@ -46,17 +46,18 @@ public class URIHostTest {
     
     @Test
     public void ipV4HostWithPathSeparator() throws URISyntaxException {
-        URIAssert.host("http://127.0.0.1/", "127.0.0.1");
+        URIAssert.equals("127.0.0.1", URI.parse("http://127.0.0.1/").host());
     }
 
     @Test
-    public void portSeparatorOnlyThrowsException() throws URISyntaxException {
-        URIAssert.exception("http://www.example.com:");
+    public void portSeparatorOnlyIsOmitted() throws URISyntaxException {
+        URI uri = URI.parse("http://www.example.com:");
+        URIAssert.equals(URI.parse("http://www.example.com").toASCII(), uri.toASCII());
     }
 
-    @Test
+    @Test(expected=URISyntaxException.class)
     public void portContainsInvalidCharacter() throws URISyntaxException {
-        URIAssert.exception("http://www.example.com:9a");
+        URI.parse("http://www.example.com:9a");
     }
     
     @Test

@@ -12,12 +12,13 @@ public class URITest {
     public void shouldHaveEmptyPropertiesWhenCreated() {
         URI uri = new URI();
         Assert.assertEquals(null, uri.scheme());
-        Assert.assertEquals(null, uri.userinfo());
         Assert.assertEquals(null, uri.host());
         Assert.assertEquals(-1,   uri.port());
         Assert.assertEquals(null, uri.path());
         Assert.assertEquals(null, uri.query());
         Assert.assertEquals(null, uri.fragment());
+        
+        URIAssert.equals("", uri.userinfo());
     }
     
     @Test
@@ -139,6 +140,12 @@ public class URITest {
     }
     
     @Test
+    public void shouldConstructURIWithSchemeAndPath() throws URISyntaxException {
+        URI uri = new URI().withScheme("http").withPath("path");
+        URIAssert.equals("http:path", uri.toASCII());
+    }
+    
+    @Test
     public void shouldConstructSiteWithHostAndScheme() throws URISyntaxException {
         URI uri = new URI().withScheme("http").withHost("example.com");
         URIAssert.equals("http://example.com", uri.site());
@@ -161,12 +168,6 @@ public class URITest {
     public void shouldNotTransformSpecialEncodedCharacters() throws URISyntaxException {
         URI uri = URI.parse("http://www.Test%7B%7D.com");
         URIAssert.equals("www.test%7B%7D.com", uri.host());
-    }
-    
-    @Test
-    public void shouldParseURIWithSeveralSlashesInPath() throws URISyntaxException {
-        URI uri = URI.parse("http://example.com/rfc/rfc");
-        URIAssert.equals("/rfc/rfc", uri.path());
     }
     
     @Test
@@ -228,7 +229,7 @@ public class URITest {
     public void shouldConstructLdapURI() throws URISyntaxException {
         URI uri = new URI()
             .withScheme("ldap")
-            .withIPV6Host("[2001:db8::7]")
+            .withHost("[2001:db8::7]")
             .withPath("/c=GB")
             .withQuery("objectClass?one");
         URIAssert.equals("ldap://[2001:db8::7]/c=GB?objectClass?one", uri.toASCII());
@@ -342,6 +343,30 @@ public class URITest {
         URI uri = URI.parse("ldap://[2001:db8::7]:389/c=GB?objectClass?one");
         Assert.assertEquals(389, uri.port());
         URIAssert.equals("ldap://[2001:db8::7]/c=GB?objectClass?one", uri.toASCII());
+    }
+    
+    //
+    // Section 6.2.2 Syntax-based Normalization
+    //
+    
+    @Test
+    public void shouldCompareWithEquivalentURI() throws URISyntaxException {
+        URI uri = URI.parse("http://example.com");
+        URIAssert.equals(URI.parse("http://EXAMPLE.com").toASCII(), uri.toASCII());
+        URIAssert.equals(URI.parse("http://EXAMPLE.com:80/").toASCII(), uri.toASCII());
+    }
+    
+    //
+    // Section 6.2.3 Scheme-based normalization
+    //
+    
+    @Test
+    public void shouldNormalizeURIPort() throws URISyntaxException {
+        URI uri = URI.parse("http://example.com/");
+        URIAssert.equals(URI.parse("http://example.com/").toASCII(), uri.toASCII());
+        URIAssert.equals(URI.parse("http://example.com:/").toASCII(), uri.toASCII());
+        URIAssert.equals(URI.parse("http://example.com:80/").toASCII(), uri.toASCII());
+        URIAssert.equals(URI.parse("http://EXAMPLE.COM/").toASCII(), uri.toASCII());
     }
 }
 
