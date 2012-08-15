@@ -42,7 +42,7 @@ public class URI {
           ")" +
           "|" +
           "(" +
-              "["+COMMON+"%@]+(?:/["+COMMON+":%@]+)*/?" +
+              "(?:["+COMMON+"@]|"+PERCENT+")+(?:/["+COMMON+":%@]|"+PERCENT+")*/?" +
               "|" +
               "(?:/["+COMMON+":@]+)+/?" +
           ")" +
