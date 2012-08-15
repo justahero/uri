@@ -12,12 +12,13 @@ public class URITest {
     public void shouldHaveEmptyPropertiesWhenCreated() {
         URI uri = new URI();
         Assert.assertEquals(null, uri.scheme());
-        Assert.assertEquals(null, uri.userinfo());
         Assert.assertEquals(null, uri.host());
         Assert.assertEquals(-1,   uri.port());
         Assert.assertEquals(null, uri.path());
         Assert.assertEquals(null, uri.query());
         Assert.assertEquals(null, uri.fragment());
+        
+        URIAssert.equals("", uri.userinfo());
     }
     
     @Test

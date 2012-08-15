@@ -91,6 +91,8 @@ public class URI {
     }
     
     private URI withUserInfo(String userInfo) throws URISyntaxException {
+        username = null;
+        userpass = null;
         parseUserInfo(userInfo);
         return this;
     }
@@ -98,8 +100,8 @@ public class URI {
     public URI withUserInfo(String username, String userpass) throws URISyntaxException {
         String userinfo = "";
         userinfo += (username != null) ? username : "";
-        userinfo += (userpass != null) ? ":" + userpass : "";
-        return withUserInfo(userinfo);
+        userinfo += (userpass != null && !userpass.isEmpty()) ? ":" + userpass : "";
+        return withUserInfo(userinfo.isEmpty() ? null : userinfo);
     }
     
     public URI withScheme(String scheme) throws URISyntaxException {
@@ -174,12 +176,12 @@ public class URI {
     
     public static URI parseURL(URL url) throws URISyntaxException {
         URI uri = new URI()
-                .withScheme(url.getProtocol())
-                .withUserInfo(url.getUserInfo())
-                .withHost(url.getHost())
-                .withPort(url.getPort())
-                .withPath(url.getPath())
-                .withQuery(url.getQuery());
+            .withScheme(url.getProtocol())
+            .withUserInfo(url.getUserInfo())
+            .withHost(url.getHost())
+            .withPort(url.getPort())
+            .withPath(url.getPath())
+            .withQuery(url.getQuery());
         return uri;
     }
     
@@ -199,7 +201,7 @@ public class URI {
         String userinfo = "";
         userinfo += (username != null) ? username : "";
         userinfo += (userpass != null && !userpass.isEmpty()) ? ":" + userpass : "";
-        return userinfo.isEmpty() ? null : userinfo;
+        return userinfo;
     }
     
     public String host() {

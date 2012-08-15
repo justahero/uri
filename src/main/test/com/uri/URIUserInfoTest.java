@@ -44,12 +44,12 @@ public class URIUserInfoTest {
     
     @Test(expected=URISyntaxException.class)
     public void shouldNotParseWithOnlyUserpass() throws URISyntaxException {
-        URI.parse("http://:pass@example.com");
+        URI.parse("http://:pass@example.com").toASCII();
     }
     
     @Test(expected=URISyntaxException.class)
     public void shouldNotParseWithOnlyColonInUserinfo() throws URISyntaxException {
-        URI.parse("http://:@example.com");
+        URI.parse("http://:@example.com").toASCII();
     }
     
     @Test(expected=URISyntaxException.class)
@@ -73,5 +73,23 @@ public class URIUserInfoTest {
         Assert.assertNull(uri.username());
         Assert.assertNull(uri.userpass());
     }
-
+    
+    @Test
+    public void shouldNotThrowExceptionWhenNameAndPassAreEmpty() throws URISyntaxException {
+        URI uri = new URI().withUserInfo("", "");
+        Assert.assertNull(uri.username());
+        Assert.assertNull(uri.userpass());
+        URIAssert.equals("", uri.userinfo());
+    }
+    
+    @Test
+    public void shouldConstructUserInfoAfterReplacingNameAndPass() throws URISyntaxException {
+        URI uri = new URI().withUserInfo("test", "foo");
+        URIAssert.equals("test:foo", uri.userinfo());
+        uri.withUserInfo(null, null);
+        Assert.assertNull(uri.username());
+        Assert.assertNull(uri.userpass());
+        URIAssert.equals("", uri.userinfo());
+    }
 }
+
