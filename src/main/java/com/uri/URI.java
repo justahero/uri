@@ -230,7 +230,10 @@ public class URI {
         
         StringBuilder builder = new StringBuilder();
         builder.append(scheme != null ? scheme + ":" : "");
-        builder.append(authority != null ? "//" + authority : "");
+        if (scheme != null && !authority.isEmpty()) {
+            builder.append("//");
+        }
+        builder.append(authority);
         
         return (builder.length() > 0) ? builder.toString() : null;
     }
@@ -238,14 +241,15 @@ public class URI {
     public String authority() {
         StringBuilder result = new StringBuilder();
         String userinfo = userinfo();
+        
         result.append(userinfo != null && !userinfo.isEmpty() ? userinfo + "@" : "");
-        result.append(host != null ? host + "" : "");
+        result.append(host != null ? host : "");
         
         int defaultPort = inferredPort();
         if (port != -1 && port != defaultPort) {
             result.append(":" + port);
         }
-        return (result.length() > 0) ? result.toString() : null;
+        return result.toString();
     }
     
     public int inferredPort() {
@@ -263,9 +267,11 @@ public class URI {
         if (path != null && path.compareTo("/") == 0) {
             path = "";
         }
-        
-        if (authority == null && path == null) {
+        if (authority.isEmpty() && path == null) {
             throw new URISyntaxException("", "URI is missing authority or path!");
+        }
+        if (authority.length() > 0 && scheme == null) {
+            throw new URISyntaxException("", "Authority given but no scheme found!");
         }
         
         StringBuilder builder = new StringBuilder();
