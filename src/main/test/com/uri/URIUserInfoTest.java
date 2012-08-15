@@ -75,6 +75,14 @@ public class URIUserInfoTest {
     }
     
     @Test
+    public void shouldNotThrowExceptionWhenNameAndPassAreNull() throws URISyntaxException {
+        URI uri = new URI().withUserInfo(null, null);
+        Assert.assertNull(uri.username());
+        Assert.assertNull(uri.userpass());
+        URIAssert.equals("", uri.userinfo());
+    }
+    
+    @Test
     public void shouldNotThrowExceptionWhenNameAndPassAreEmpty() throws URISyntaxException {
         URI uri = new URI().withUserInfo("", "");
         Assert.assertNull(uri.username());

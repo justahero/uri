@@ -19,6 +19,7 @@ public class URITest {
         Assert.assertEquals(null, uri.fragment());
         
         URIAssert.equals("", uri.userinfo());
+        URIAssert.equals("", uri.authority());
     }
     
     @Test

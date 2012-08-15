@@ -84,7 +84,7 @@ public class URIPathTest {
     public void shouldParseURIWithRelativePath() throws URISyntaxException {
         URI uri = URI.parse("/relative/path/to/file");
         Assert.assertNull(uri.scheme());
-        Assert.assertNull(uri.authority());
+        URIAssert.equals("", uri.authority());
         URIAssert.equals("/relative/path/to/file", uri.path());
         URIAssert.equals("/relative/path/to/file", uri.toASCII());
     }
@@ -93,7 +93,7 @@ public class URIPathTest {
     public void shouldConstructURIWithRelativePath() throws URISyntaxException {
         URI uri = new URI().withPath("/relative/foo/bar");
         Assert.assertNull(uri.scheme());
-        Assert.assertNull(uri.authority());
+        URIAssert.equals("", uri.authority());
         URIAssert.equals("/relative/foo/bar", uri.path());
         URIAssert.equals("/relative/foo/bar", uri.toASCII());
     }
