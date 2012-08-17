@@ -27,6 +27,9 @@ public class URI {
     private final static String RegExIPFuture  = "/[v(.+)/]";
     private final static String RegExHost      = "("+RegExNamedHost+"|"+RegExIPV6Host+"|"+RegExIPFuture+")?";
     
+    private final static String RegExQuery     = "(?:\\?(["+COMMON+":@/?]*))";
+    private final static String RegExFragment  = "(\\#["+COMMON+":@/?]*)";
+    
     private final static String RegExURI =
           "\\A" +
           "(?:" +
@@ -47,8 +50,8 @@ public class URI {
               "(?:/["+COMMON+":@]+)+/?" +
           ")" +
           ")" +
-          "(?:\\?(["+COMMON+":@/?]*))?" + // query string
-          "(\\#["+COMMON+":@/?]*)?" + // fragment
+          RegExQuery + "?" + // query string
+          RegExFragment + "?" + // fragment
           "\\Z";
     
     private final static Pattern URIPattern;
@@ -224,18 +227,12 @@ public class URI {
         return fragment;
     }
     
-    public String site() {
-        String authority = authority();
-        String scheme = scheme();
-        
+    public String requestURI() {
         StringBuilder builder = new StringBuilder();
-        builder.append(scheme != null ? scheme + ":" : "");
-        if (scheme != null && !authority.isEmpty()) {
-            builder.append("//");
-        }
-        builder.append(authority);
-        
-        return (builder.length() > 0) ? builder.toString() : null;
+        builder.append(path != null ? path : "");
+        builder.append(query != null ? "?" + query : "");
+        builder.append(fragment != null ? "#" + fragment : "");
+        return builder.toString();
     }
     
     public String authority() {
@@ -250,6 +247,25 @@ public class URI {
             result.append(":" + port);
         }
         return result.toString();
+    }
+
+    public String site() {
+        String authority = authority();
+        String scheme = scheme();
+        
+        StringBuilder builder = new StringBuilder();
+        builder.append(scheme != null ? scheme + ":" : "");
+        if (scheme != null && !authority.isEmpty()) {
+            builder.append("//");
+        }
+        builder.append(authority);
+        
+        return (builder.length() > 0) ? builder.toString() : null;
+    }
+    
+    public URI withRequestURI(String request) {
+        parseRequestURI(request);
+        return this;
     }
     
     public int inferredPort() {
@@ -377,6 +393,10 @@ public class URI {
         if (fragment != null) {
             this.fragment = fragment;
         }
+    }
+    
+    private void parseRequestURI(String request) {
+        
     }
     
 }
