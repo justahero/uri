@@ -336,7 +336,7 @@ public class URI {
                 throw new URISyntaxException(userInfo, "User info is not valid");
             }
             username = (!parts[0].isEmpty()) ? parts[0] : null;
-            userpass = (parts.length > 1) ? parts[1] : null;
+            userpass = (parts.length > 1 && !parts[1].isEmpty()) ? parts[1] : null;
         }
     }
     

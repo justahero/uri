@@ -8,8 +8,6 @@ import org.junit.Test;
 
 public class URIUserInfoTest {
 
-    // NOTE not really sure if this correct syntax or if there must be at least one character when a
-    // '@' sign appears in the authority part
     @Test
     public void shouldParseEmptyUserInfoWithAtSignPresent() throws URISyntaxException {
         URI uri = URI.parse("http://@example.com");
@@ -38,7 +36,7 @@ public class URIUserInfoTest {
     public void shouldParseUsernameWithColon() throws URISyntaxException {
         URI uri = URI.parse("http://username:@example.com");
         URIAssert.equals("username", uri.username());
-        URIAssert.equals("", uri.userpass());
+        Assert.assertNull(uri.userpass());
     }
     
     @Test
@@ -53,9 +51,13 @@ public class URIUserInfoTest {
         URI.parse("http://:pass@example.com").toASCII();
     }
     
-    @Test(expected=URISyntaxException.class)
-    public void shouldNotParseWithOnlyColonInUserinfo() throws URISyntaxException {
-        URI.parse("http://:@example.com").toASCII();
+    @Test
+    public void shouldParseWithOnlyColonInUserInfo() throws URISyntaxException {
+        URI uri = URI.parse("http://:@example.com");
+        Assert.assertNull(uri.username());
+        Assert.assertNull(uri.userpass());
+        URIAssert.equals("", uri.userinfo());
+        URIAssert.equals("http://example.com", uri.toASCII());
     }
     
     @Test(expected=URISyntaxException.class)

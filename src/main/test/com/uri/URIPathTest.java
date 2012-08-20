@@ -140,6 +140,17 @@ public class URIPathTest {
     public void shouldNotParseRelativePathWithMisformedPercentOctet() throws URISyntaxException {
         new URI().withPath("/foo/%gg/").toASCII();
     }
+    
+    //
+    // Normalizing and Percent Encoding of path component
+    //
+    
+    @Test
+    public void shouldParseURIWithEncodedUnreservedCharacter() throws URISyntaxException {
+        URI uri = URI.parse("http://example.com/~foo/");
+        URIAssert.equals(URI.parse("http://example.com/%7Efoo/").toASCII(), uri.toASCII());
+        URIAssert.equals(URI.parse("http://example.com/%7efoo/").toASCII(), uri.toASCII());
+    }
 }
 
 
