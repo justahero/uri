@@ -71,7 +71,7 @@ public class URIPathTest {
     
     @Test(expected=URISyntaxException.class)
     public void shouldNotParseAbsolutePathWithBeginningDoubleSlashes() throws URISyntaxException {
-        URI.parse("http:////test/foo");
+        URI.parse("http:////test/foo").toASCII();
     }
     
     @Test

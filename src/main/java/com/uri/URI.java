@@ -28,7 +28,9 @@ public class URI {
     private final static String RegExHost      = "("+RegExNamedHost+"|"+RegExIPV6Host+"|"+RegExIPFuture+")?";
     
     private final static String RegExQuery     = "(?:\\?(["+COMMON+":@/?]*))";
-    private final static String RegExFragment  = "(\\#["+COMMON+":@/?]*)";
+    private final static String RegExFragment  = "(?:\\#(["+COMMON+":@/?]*))";
+    
+    private final static String RegExRequestURI = "(/?["+COMMON+":@]+(?:/["+COMMON+":@]+)*/?)?"+RegExQuery+"?"+RegExFragment+"?";
     
     private final static String RegExURI =
           "\\A" +
@@ -40,13 +42,14 @@ public class URI {
               RegExHost +
               "(?::([0-9]*))?" + // port
               "(/(?:["+COMMON+":@/]|"+PERCENT+")*)?" + // path
-              "|" + // no authority
+              "|" + // no path with authority
               "(/?["+COMMON+":@]+(/["+COMMON+":@]+)*/?)?" +
           ")" +
           "|" +
           "(" +
+              // path without scheme and authority
               "(?:["+COMMON+"@]|"+PERCENT+")+(?:/["+COMMON+":%@]|"+PERCENT+")*/?" +
-              "|" +
+              "|" + // path leading with scheme and authority
               "(?:/["+COMMON+":@]+)+/?" +
           ")" +
           ")" +
@@ -57,6 +60,7 @@ public class URI {
     private final static Pattern URIPattern;
     private final static Pattern UserInfoPattern;
     private final static Pattern SchemePattern;
+    private final static Pattern RequestURIPattern;
     
     private final static Pattern NamedHostPattern;
     private final static Pattern IPV6HostPattern;
@@ -72,9 +76,10 @@ public class URI {
     private String fragment  = null;
     
     static {
-        URIPattern      = Pattern.compile(RegExURI);
-        UserInfoPattern = Pattern.compile(RegExUserInfo);
-        SchemePattern   = Pattern.compile(RegExScheme);
+        URIPattern        = Pattern.compile(RegExURI);
+        UserInfoPattern   = Pattern.compile(RegExUserInfo);
+        SchemePattern     = Pattern.compile(RegExScheme);
+        RequestURIPattern = Pattern.compile(RegExRequestURI);
         
         NamedHostPattern = Pattern.compile(RegExNamedHost);
         IPV6HostPattern  = Pattern.compile(RegExIPV6Host);
@@ -122,7 +127,7 @@ public class URI {
         return this;
     }
     
-    public URI withPath(String path) throws URISyntaxException {
+    public URI withPath(String path) {
         parsePath(path);
         return this;
     }
@@ -280,9 +285,14 @@ public class URI {
         String path = path();
         String site = site();
         
-        if (path != null && path.compareTo("/") == 0) {
-            path = "";
+        if (path != null) {
+            if (path.compareTo("/") == 0) {
+                path = "";
+            } else if (path.startsWith("//")) {
+                throw new URISyntaxException(path, "Path component must not start with '//'");
+            }
         }
+        
         if (authority.isEmpty() && path == null) {
             throw new URISyntaxException("", "URI is missing authority or path!");
         }
@@ -373,11 +383,8 @@ public class URI {
         }
     }
     
-    private void parsePath(String path) throws URISyntaxException {
+    private void parsePath(String path) {
         if (path != null) {
-            if (path.startsWith("//")) {
-                throw new URISyntaxException(path, "Path component must not start with '//'");
-            }
             this.path = (host != null && !path.startsWith("/")) ? "/" + path : path;
             this.path = URIUtils.normalizeString(this.path, true);
         }
@@ -396,7 +403,19 @@ public class URI {
     }
     
     private void parseRequestURI(String request) {
-        
+        this.path = null;
+        this.query = null;
+        this.fragment = null;
+        Matcher matcher = RequestURIPattern.matcher(request);
+        if (matcher.matches()) {
+            String path = matcher.group(1);
+            String query = matcher.group(2);
+            String fragment = matcher.group(3);
+            
+            parsePath(path);
+            parseQuery(query);
+            parseFragment(fragment);
+        }
     }
     
 }

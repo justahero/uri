@@ -64,6 +64,9 @@ public class URITest {
     public void shouldConstructURIWithComplexRequestURI() {
         URI uri = new URI().withRequestURI("/test/foo.html?key=value#top");
         URIAssert.equals("/test/foo.html?key=value#top", uri.requestURI());
+        URIAssert.equals("/test/foo.html", uri.path());
+        URIAssert.equals("key=value", uri.query());
+        URIAssert.equals("top", uri.fragment());
     }
     
     @Test(expected=URISyntaxException.class)
