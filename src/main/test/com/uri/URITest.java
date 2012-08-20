@@ -412,7 +412,6 @@ public class URITest {
     public void shouldSetRequestURIAfterParsingURI() throws URISyntaxException {
         URI uri = URI.parse("http://www.w3.org/pub/WWW/TheProject.html");
         uri.withRequestURI("/some/where/else.html?query?string");
-        
         URIAssert.equals("/some/where/else.html?query?string", uri.requestURI());
         URIAssert.equals("/some/where/else.html", uri.path());
         URIAssert.equals("query?string", uri.query());

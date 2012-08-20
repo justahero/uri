@@ -19,12 +19,12 @@ public class URI {
     private final static String COMMON         = UNRESERVED + SUBDELIM;
     private final static String PERCENT        = "%["+HEX+"]{2}";
     
-    private final static String RegExUserInfo  = "(["+COMMON+":]|"+PERCENT+")+";
+    private final static String RegExUserInfo  = "(?:["+COMMON+":]|"+PERCENT+")*";
     private final static String RegExScheme    = "^(["+ALPHA+"]+["+ALPHA+DIGIT+"+-.]*)";
     
     private final static String RegExNamedHost = "(?:["+UNRESERVED+"]|"+PERCENT+")*";
     private final static String RegExIPV6Host  = "\\[["+HEX+":.]+\\]";
-    private final static String RegExIPFuture  = "/[v(.+)/]";
+    private final static String RegExIPFuture  = "(?:\\[v["+HEX+".]+["+COMMON+":]+\\])";
     private final static String RegExHost      = "("+RegExNamedHost+"|"+RegExIPV6Host+"|"+RegExIPFuture+")?";
     
     private final static String RegExQuery     = "(?:\\?(["+COMMON+":@/?]*))";
@@ -38,7 +38,8 @@ public class URI {
           RegExScheme+":" + // scheme
           "(?:" + // authority
               "//" +
-              "(?:((?:["+COMMON+":]|"+PERCENT+")+)@)?" + // user info
+              //"(?:((?:["+COMMON+":]|"+PERCENT+")+)@)?" + // user info
+              "(?:(" + RegExUserInfo + ")@)?" +
               RegExHost +
               "(?::([0-9]*))?" + // port
               "(/(?:["+COMMON+":@/]|"+PERCENT+")*)?" + // path
@@ -285,6 +286,10 @@ public class URI {
         String path = path();
         String site = site();
         
+        if (username == null && userpass != null) {
+            throw new URISyntaxException(userinfo(), "Userpass given but no username");
+        }
+        
         if (path != null) {
             if (path.compareTo("/") == 0) {
                 path = "";
@@ -326,15 +331,12 @@ public class URI {
     
     private void parseUserInfo(String userInfo) throws URISyntaxException {
         if (userInfo != null) {
-            if (userInfo.isEmpty()) {
-                throw new URISyntaxException(userInfo, "User info must be specified if '@' is present");
-            }
             String[] parts = userInfo.split(":", -1);
-            if (parts.length > 2 || parts[0].isEmpty() || !isUserInfoValid(userInfo)) {
+            if (parts.length > 2 || !isUserInfoValid(userInfo)) {
                 throw new URISyntaxException(userInfo, "User info is not valid");
             }
-            username = parts[0];
-            userpass = (parts.length > 1) ? parts[1] : "";
+            username = (!parts[0].isEmpty()) ? parts[0] : null;
+            userpass = (parts.length > 1) ? parts[1] : null;
         }
     }
     

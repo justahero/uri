@@ -19,19 +19,22 @@ public class URIPathTest {
         URI uri = URI.parse("http://www.example.com/");
         Assert.assertNotNull(uri.path());
         URIAssert.equals("/", uri.path());
+        URIAssert.equals("/", uri.requestURI());
     }
     
     @Test
     public void shouldConstructURIWithoutPath() throws URISyntaxException {
         URI uri = new URI().withScheme("http").withHost("test.de");
         Assert.assertEquals(null, uri.path());
-        Assert.assertEquals("http://test.de", uri.toASCII());
+        URIAssert.equals("http://test.de", uri.toASCII());
+        URIAssert.equals("", uri.requestURI());
     }
     
     @Test
     public void shouldParseURIWithEmptyPath() throws URISyntaxException {
         URI uri = URI.parse("http://www.example.com");
         Assert.assertNull(uri.path());
+        URIAssert.equals("", uri.requestURI());
     }
     
     //
