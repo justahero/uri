@@ -55,7 +55,7 @@ public class URITest {
     }
     
     @Test
-    public void shouldConstructURIWithRequestURI() {
+    public void shouldConstructURIOnlyWithRequestURI() {
         URI uri = new URI().withRequestURI("/test/image.png");
         URIAssert.equals("/test/image.png", uri.requestURI());
     }
@@ -406,6 +406,18 @@ public class URITest {
         Assert.assertNull(uri.path());
         Assert.assertNull(uri.query());
         URIAssert.equals("", uri.requestURI());
+    }
+    
+    @Test
+    public void shouldConstructURIWithRequestURI() throws URISyntaxException {
+        URI uri = new URI().withScheme("http").withHost("www.example.com").withRequestURI("/test?key=temp#bottom");
+        URIAssert.equals("http", uri.scheme());
+        URIAssert.equals("www.example.com", uri.host());
+        URIAssert.equals("", uri.userinfo());
+        URIAssert.equals("/test", uri.path());
+        URIAssert.equals("key=temp", uri.query());
+        URIAssert.equals("bottom", uri.fragment());
+        URIAssert.equals("http://www.example.com/test?key=temp#bottom", uri.toASCII());
     }
     
     @Test
