@@ -10,13 +10,18 @@ public class URIHostTest {
     
     @Test
     public void namedHostWithoutUserInfo() throws URISyntaxException {
-        URIAssert.host("http://www.example.com", "www.example.com");
+        URI uri = URI.parse("http://www.example.com");
+        URIAssert.equals("www.example.com", uri.host());
     }
     
-    @Test
-    public void namedHostWithInvalidCharacter() throws URISyntaxException {
-        URIAssert.exception("http://www.foo[bar].com");
-        URIAssert.exception("http://www.<test>.com");
+    @Test(expected=URISyntaxException.class)
+    public void shouldNotParseNamedHostWithSquareBrackets() throws URISyntaxException {
+        URI.parse("http://www.foo[bar].com");
+    }
+    
+    @Test(expected=URISyntaxException.class)
+    public void shouldNotParseNamedHostWithComparisonOperators() throws URISyntaxException {
+        URI.parse("http://www.<test>.com");
     }
     
     @Test
@@ -36,12 +41,14 @@ public class URIHostTest {
     
     @Test
     public void ipV4HostWithoutUserInfo() throws URISyntaxException {
-        URIAssert.host("http://127.0.0.1", "127.0.0.1");
+        URI uri = URI.parse("http://127.0.0.1");
+        Assert.assertEquals("127.0.0.1", uri.host());
     }
     
     @Test
     public void ipV4HostWithUserInfo() throws URISyntaxException {
-        URIAssert.host("http://foo:bar@33.33.33.10", "33.33.33.10");
+        URI uri = URI.parse("http://foo:bar@33.33.33.10");
+        URIAssert.equals("33.33.33.10", uri.host());
     }
     
     @Test
@@ -91,6 +98,44 @@ public class URIHostTest {
         Assert.assertEquals(4040, uri.port());
         URIAssert.equals("[1080:0:0:0:8:800:200C:417A]", uri.host());
     }
+    
+    @Test
+    public void shouldParseCompleteIPV6URI() throws URISyntaxException {
+        URI uri = URI.parse("http://[3ffe:1900:4545:3:200:f8ff:fe21:67cf]/");
+        URIAssert.equals("http://[3ffe:1900:4545:3:200:f8ff:fe21:67cf]", uri.toASCII());
+        URIAssert.equals("[3ffe:1900:4545:3:200:f8ff:fe21:67cf]", uri.host());
+    }
+    
+    @Test
+    public void shouldParseSeveralDifferentIPV6URIs() throws URISyntaxException {
+        URI.parse("http://[fe80:0:0:0:200:f8ff:fe21:67cf]/");
+        URI.parse("http://[fe80::200:f8ff:fe21:67cf]/");
+        URI.parse("http://[::1]/");
+        URI.parse("http://[fe80::1]/");
+    }
+    
+    @Test(expected=URISyntaxException.class)
+    public void shouldNotParseInvalidIPV6URI() throws URISyntaxException {
+        URI.parse("http://[<invalid>]");
+    }
+    
+    @Test
+    public void shouldParseCompleteIPFutureURIs() throws URISyntaxException {
+        URI uri = URI.parse("http://[v9.3ffe:1900:4545:3:200:f8ff:fe21:67cf]/");
+        URIAssert.equals("http://[v9.3ffe:1900:4545:3:200:f8ff:fe21:67cf]", uri.toASCII());
+        URIAssert.equals("[v9.3ffe:1900:4545:3:200:f8ff:fe21:67cf]", uri.host());
+    }
+    
+    @Test
+    public void shouldParseSeveralIPV6FutureURIs() throws URISyntaxException {
+        URI.parse("http://[vff.fe80:0:0:0:200:f8ff:fe21:67cf]/");
+        URI.parse("http://[v12.fe80::200:f8ff:fe21:67cf]/");
+        URI.parse("http://[va0.::1]/");
+        URI.parse("http://[v255.fe80::1]/");
+    }
+    
+    @Test(expected=URISyntaxException.class)
+    public void shouldNotParseInvalidIPFutureURI() throws URISyntaxException {
+        URI.parse("http://[v0.<invalid>]/");
+    }
 }
-
-

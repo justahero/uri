@@ -14,11 +14,6 @@ public class URIAssert {
         }
     }
     
-    public static void host(String url, String expectedHost) throws URISyntaxException {
-        URI uri = URI.parse(url);
-        Assert.assertEquals(expectedHost, uri.host());
-    }
-    
     public static void user(String url, String username, String userpass) throws URISyntaxException {
         URI uri = URI.parse(url);
         Assert.assertEquals(username, uri.username());

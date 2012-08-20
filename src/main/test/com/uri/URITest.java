@@ -20,6 +20,7 @@ public class URITest {
         
         URIAssert.equals("", uri.userinfo());
         URIAssert.equals("", uri.authority());
+        URIAssert.equals("", uri.requestURI());
     }
     
     @Test
@@ -51,6 +52,21 @@ public class URITest {
     public void shouldConstructURIWithPath() throws URISyntaxException {
         URI uri = new URI().withPath("test");
         URIAssert.equals("test", uri.path());
+    }
+    
+    @Test
+    public void shouldConstructURIWithRequestURI() {
+        URI uri = new URI().withRequestURI("/test/image.png");
+        URIAssert.equals("/test/image.png", uri.requestURI());
+    }
+    
+    @Test
+    public void shouldConstructURIWithComplexRequestURI() {
+        URI uri = new URI().withRequestURI("/test/foo.html?key=value#top");
+        URIAssert.equals("/test/foo.html?key=value#top", uri.requestURI());
+        URIAssert.equals("/test/foo.html", uri.path());
+        URIAssert.equals("key=value", uri.query());
+        URIAssert.equals("top", uri.fragment());
     }
     
     @Test(expected=URISyntaxException.class)
@@ -152,6 +168,10 @@ public class URITest {
         URIAssert.equals("http://example.com", uri.site());
         URIAssert.equals(uri.site(), URI.parse("http://example.com").toASCII());
     }
+    
+    //
+    // Normalizing octets
+    //
     
     @Test
     public void shouldTransformLetterOctetsToLowerCase() throws URISyntaxException {
@@ -369,7 +389,33 @@ public class URITest {
         URIAssert.equals(URI.parse("http://example.com:80/").toASCII(), uri.toASCII());
         URIAssert.equals(URI.parse("http://EXAMPLE.COM/").toASCII(), uri.toASCII());
     }
+    
+    //
+    // Section 5.1.2 of RFC 2616
+    //
+    
+    @Test
+    public void shouldParseRequestURIFromHttp() throws URISyntaxException {
+        URI uri = URI.parse("http://www.w3.org/pub/WWW/TheProject.html");
+        URIAssert.equals("/pub/WWW/TheProject.html", uri.requestURI());
+    }
+    
+    @Test
+    public void shouldValidateEmptyRequestURIAfterParsingURI() throws URISyntaxException {
+        URI uri = URI.parse("http://www.example.com");
+        Assert.assertNull(uri.path());
+        Assert.assertNull(uri.query());
+        URIAssert.equals("", uri.requestURI());
+    }
+    
+    @Test
+    public void shouldSetRequestURIAfterParsingURI() throws URISyntaxException {
+        URI uri = URI.parse("http://www.w3.org/pub/WWW/TheProject.html");
+        uri.withRequestURI("/some/where/else.html?query?string");
+        URIAssert.equals("/some/where/else.html?query?string", uri.requestURI());
+        URIAssert.equals("/some/where/else.html", uri.path());
+        URIAssert.equals("query?string", uri.query());
+    }
 }
-
 
 

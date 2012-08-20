@@ -10,22 +10,28 @@ public class URIUserInfoTest {
 
     // NOTE not really sure if this correct syntax or if there must be at least one character when a
     // '@' sign appears in the authority part
-    @Test(expected=URISyntaxException.class)
-    public void shouldNotParseEmptyUserInfoWithAtSignPresent() throws URISyntaxException {
-        URI.parse("http://@example.com");
+    @Test
+    public void shouldParseEmptyUserInfoWithAtSignPresent() throws URISyntaxException {
+        URI uri = URI.parse("http://@example.com");
+        Assert.assertNull(uri.username());
+        Assert.assertNull(uri.userpass());
     }
     
-    @Test
-    public void shouldNotParseInvalidCharacterInUsername() throws URISyntaxException {
-        URIAssert.exception("http://te[]st:bla@example.com");
-        URIAssert.exception("http://<tes>t:foo@example.com");
+    @Test(expected=URISyntaxException.class)
+    public void shouldNotParseUserInfoWithSquareBrackets() throws URISyntaxException {
+        URI.parse("http://te[]st:bla@example.com");
+    }
+    
+    @Test(expected=URISyntaxException.class)
+    public void shouldNotParseUserInfoWithComparisonOperators() throws URISyntaxException {
+        URI.parse("http://<tes>t:foo@example.com");
     }
     
     @Test
     public void shouldParseUsernameOnly() throws URISyntaxException {
         URI uri = URI.parse("http://username@example.com");
         URIAssert.equals("username", uri.username());
-        URIAssert.equals("", uri.userpass());
+        Assert.assertNull(uri.userpass());
     }
     
     @Test

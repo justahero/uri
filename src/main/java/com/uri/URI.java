@@ -19,13 +19,18 @@ public class URI {
     private final static String COMMON         = UNRESERVED + SUBDELIM;
     private final static String PERCENT        = "%["+HEX+"]{2}";
     
-    private final static String RegExUserInfo  = "(["+COMMON+":]|"+PERCENT+")+";
+    private final static String RegExUserInfo  = "(?:["+COMMON+":]|"+PERCENT+")*";
     private final static String RegExScheme    = "^(["+ALPHA+"]+["+ALPHA+DIGIT+"+-.]*)";
     
     private final static String RegExNamedHost = "(?:["+UNRESERVED+"]|"+PERCENT+")*";
     private final static String RegExIPV6Host  = "\\[["+HEX+":.]+\\]";
-    private final static String RegExIPFuture  = "/[v(.+)/]";
+    private final static String RegExIPFuture  = "(?:\\[v["+HEX+".]+["+COMMON+":]+\\])";
     private final static String RegExHost      = "("+RegExNamedHost+"|"+RegExIPV6Host+"|"+RegExIPFuture+")?";
+    
+    private final static String RegExQuery     = "(?:\\?(["+COMMON+":@/?]*))";
+    private final static String RegExFragment  = "(?:\\#(["+COMMON+":@/?]*))";
+    
+    private final static String RegExRequestURI = "(/?["+COMMON+":@]+(?:/["+COMMON+":@]+)*/?)?"+RegExQuery+"?"+RegExFragment+"?";
     
     private final static String RegExURI =
           "\\A" +
@@ -33,27 +38,30 @@ public class URI {
           RegExScheme+":" + // scheme
           "(?:" + // authority
               "//" +
-              "(?:((?:["+COMMON+":]|"+PERCENT+")+)@)?" + // user info
+              //"(?:((?:["+COMMON+":]|"+PERCENT+")+)@)?" + // user info
+              "(?:(" + RegExUserInfo + ")@)?" +
               RegExHost +
               "(?::([0-9]*))?" + // port
               "(/(?:["+COMMON+":@/]|"+PERCENT+")*)?" + // path
-              "|" + // no authority
+              "|" + // no path with authority
               "(/?["+COMMON+":@]+(/["+COMMON+":@]+)*/?)?" +
           ")" +
           "|" +
           "(" +
+              // path without scheme and authority
               "(?:["+COMMON+"@]|"+PERCENT+")+(?:/["+COMMON+":%@]|"+PERCENT+")*/?" +
-              "|" +
+              "|" + // path leading with scheme and authority
               "(?:/["+COMMON+":@]+)+/?" +
           ")" +
           ")" +
-          "(?:\\?(["+COMMON+":@/?]*))?" + // query string
-          "(\\#["+COMMON+":@/?]*)?" + // fragment
+          RegExQuery + "?" + // query string
+          RegExFragment + "?" + // fragment
           "\\Z";
     
     private final static Pattern URIPattern;
     private final static Pattern UserInfoPattern;
     private final static Pattern SchemePattern;
+    private final static Pattern RequestURIPattern;
     
     private final static Pattern NamedHostPattern;
     private final static Pattern IPV6HostPattern;
@@ -69,9 +77,10 @@ public class URI {
     private String fragment  = null;
     
     static {
-        URIPattern      = Pattern.compile(RegExURI);
-        UserInfoPattern = Pattern.compile(RegExUserInfo);
-        SchemePattern   = Pattern.compile(RegExScheme);
+        URIPattern        = Pattern.compile(RegExURI);
+        UserInfoPattern   = Pattern.compile(RegExUserInfo);
+        SchemePattern     = Pattern.compile(RegExScheme);
+        RequestURIPattern = Pattern.compile(RegExRequestURI);
         
         NamedHostPattern = Pattern.compile(RegExNamedHost);
         IPV6HostPattern  = Pattern.compile(RegExIPV6Host);
@@ -119,7 +128,7 @@ public class URI {
         return this;
     }
     
-    public URI withPath(String path) throws URISyntaxException {
+    public URI withPath(String path) {
         parsePath(path);
         return this;
     }
@@ -224,18 +233,12 @@ public class URI {
         return fragment;
     }
     
-    public String site() {
-        String authority = authority();
-        String scheme = scheme();
-        
+    public String requestURI() {
         StringBuilder builder = new StringBuilder();
-        builder.append(scheme != null ? scheme + ":" : "");
-        if (scheme != null && !authority.isEmpty()) {
-            builder.append("//");
-        }
-        builder.append(authority);
-        
-        return (builder.length() > 0) ? builder.toString() : null;
+        builder.append(path != null ? path : "");
+        builder.append(query != null ? "?" + query : "");
+        builder.append(fragment != null ? "#" + fragment : "");
+        return builder.toString();
     }
     
     public String authority() {
@@ -251,6 +254,25 @@ public class URI {
         }
         return result.toString();
     }
+
+    public String site() {
+        String authority = authority();
+        String scheme = scheme();
+        
+        StringBuilder builder = new StringBuilder();
+        builder.append(scheme != null ? scheme + ":" : "");
+        if (scheme != null && !authority.isEmpty()) {
+            builder.append("//");
+        }
+        builder.append(authority);
+        
+        return (builder.length() > 0) ? builder.toString() : null;
+    }
+    
+    public URI withRequestURI(String request) {
+        parseRequestURI(request);
+        return this;
+    }
     
     public int inferredPort() {
         if (scheme != null && DefaultPortMap.containsKey(scheme)) {
@@ -264,9 +286,18 @@ public class URI {
         String path = path();
         String site = site();
         
-        if (path != null && path.compareTo("/") == 0) {
-            path = "";
+        if (username == null && userpass != null) {
+            throw new URISyntaxException(userinfo(), "Userpass given but no username");
         }
+        
+        if (path != null) {
+            if (path.compareTo("/") == 0) {
+                path = "";
+            } else if (path.startsWith("//")) {
+                throw new URISyntaxException(path, "Path component must not start with '//'");
+            }
+        }
+        
         if (authority.isEmpty() && path == null) {
             throw new URISyntaxException("", "URI is missing authority or path!");
         }
@@ -300,15 +331,12 @@ public class URI {
     
     private void parseUserInfo(String userInfo) throws URISyntaxException {
         if (userInfo != null) {
-            if (userInfo.isEmpty()) {
-                throw new URISyntaxException(userInfo, "User info must be specified if '@' is present");
-            }
             String[] parts = userInfo.split(":", -1);
-            if (parts.length > 2 || parts[0].isEmpty() || !isUserInfoValid(userInfo)) {
+            if (parts.length > 2 || !isUserInfoValid(userInfo)) {
                 throw new URISyntaxException(userInfo, "User info is not valid");
             }
-            username = parts[0];
-            userpass = (parts.length > 1) ? parts[1] : "";
+            username = (!parts[0].isEmpty()) ? parts[0] : null;
+            userpass = (parts.length > 1) ? parts[1] : null;
         }
     }
     
@@ -357,11 +385,8 @@ public class URI {
         }
     }
     
-    private void parsePath(String path) throws URISyntaxException {
+    private void parsePath(String path) {
         if (path != null) {
-            if (path.startsWith("//")) {
-                throw new URISyntaxException(path, "Path component must not start with '//'");
-            }
             this.path = (host != null && !path.startsWith("/")) ? "/" + path : path;
             this.path = URIUtils.normalizeString(this.path, true);
         }
@@ -376,6 +401,22 @@ public class URI {
     private void parseFragment(String fragment) {
         if (fragment != null) {
             this.fragment = fragment;
+        }
+    }
+    
+    private void parseRequestURI(String request) {
+        this.path = null;
+        this.query = null;
+        this.fragment = null;
+        Matcher matcher = RequestURIPattern.matcher(request);
+        if (matcher.matches()) {
+            String path = matcher.group(1);
+            String query = matcher.group(2);
+            String fragment = matcher.group(3);
+            
+            parsePath(path);
+            parseQuery(query);
+            parseFragment(fragment);
         }
     }
     
