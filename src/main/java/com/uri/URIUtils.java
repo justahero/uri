@@ -44,24 +44,21 @@ public class URIUtils {
         String input = new String(path);
         
         while (!input.isEmpty()) {
-            if (input.startsWith("../")) {
-                input = input.substring(3);
-            } else if (input.startsWith("./")) {
-                input = input.substring(2);
-            } else if (input.startsWith("/./")) {
-                input = input.substring(2);
-            } else if (input.equals("/.")) {
-                input = "/";
-            } else if (input.equals(".") || input.equals("..")) {
-                input = "";
+            if (input.startsWith("../") || input.startsWith("./")) {
+                input = input.substring(input.indexOf("/") + 1);
             } else if (input.startsWith("/..")) {
                 input = input.substring(3);
                 if (!output.isEmpty()) {
                     output.pop();
                 }
+            } else if (input.equals("/.")) {
+                input = "/";
+            } else if (input.startsWith("/.")) {
+                input = input.substring(2);
+            } else if (input.equals(".") || input.equals("..")) {
+                input = "";
             } else {
-                int index = (input.startsWith("/")) ? 1 : 0;
-                int segmentIndex = input.indexOf("/", index);
+                int segmentIndex = input.indexOf("/", 1);
                 if (segmentIndex == -1) {
                     segmentIndex = input.length();
                 }
