@@ -1,5 +1,6 @@
 package com.uri;
 
+import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -29,6 +30,65 @@ public class URIUtils {
             return (ignoreCase) ? c : c.toLowerCase();
         }
         return "%" + hexValue.toUpperCase();
+    }
+    
+    /**
+     * TODO refactor this algorithm, it's a bit chunky and not so readable
+     * 
+     * @param path
+     * @return
+     */
+    public static String removeDotSegments(String path) {
+        Stack<String> output = new Stack<String>();
+        String input = new String(path);
+        
+        while (!input.isEmpty()) {
+            while (true) {
+                if (input.startsWith("../")) {
+                    input = input.substring(3);
+                } else if (input.startsWith("./")) {
+                    input = input.substring(2);
+                } else if (input.startsWith("/./")) {
+                    input = input.substring(2);
+                } else if (input.equals("/.")) {
+                    input = "/";
+                } else {
+                    break;
+                }
+            }
+            
+            if (input.equals(".") || input.equals("..")) {
+                input = "";
+            } else if (input.startsWith("/../")) {
+                input = input.substring(3);
+                if (!output.isEmpty()) {
+                    output.pop();
+                }
+            } else if (input.equals("/..")) {
+                input = "";
+                if (!output.isEmpty()) {
+                    output.pop();
+                }
+            } else {
+                int index = (input.startsWith("/")) ? 1 : 0;
+                int segmentIndex = input.indexOf("/", index);
+                if (segmentIndex == -1) {
+                    segmentIndex = input.length();
+                }
+                
+                String pathSegment = input.substring(0, segmentIndex);
+                input = input.substring(segmentIndex);
+                if (!pathSegment.isEmpty()) {
+                    output.push(pathSegment);
+                }
+            }
+        }
+        
+        StringBuffer result = new StringBuffer();
+        for (String part : output) {
+            result.append(part);
+        }
+        return result.toString();
     }
 }
 

@@ -20,6 +20,7 @@ public class URIPathTest {
         Assert.assertNotNull(uri.path());
         URIAssert.equals("/", uri.path());
         URIAssert.equals("/", uri.requestURI());
+        URIAssert.equals("http://www.example.com", uri.toASCII());
     }
     
     @Test
@@ -139,6 +140,82 @@ public class URIPathTest {
     @Test(expected=URISyntaxException.class)
     public void shouldNotParseRelativePathWithMisformedPercentOctet() throws URISyntaxException {
         new URI().withPath("/foo/%gg/").toASCII();
+    }
+    
+    //
+    // Normalizing and Percent Encoding of path component
+    //
+    
+    @Test
+    public void shouldParseURIWithEncodedUnreservedCharacter() throws URISyntaxException {
+        URI uri = URI.parse("http://example.com/~foo/");
+        URIAssert.equals(URI.parse("http://example.com/%7Efoo/").toASCII(), uri.toASCII());
+        URIAssert.equals(URI.parse("http://example.com/%7efoo/").toASCII(), uri.toASCII());
+    }
+    
+    //
+    // Removal of dot segments, see section 5.2.4 and 5.4.x of RFC 3986
+    //
+    
+    @Test
+    public void shouldRemoveLeadingSingleDotSegment() throws URISyntaxException {
+        URIAssert.equals("test/foo/bar", new URI().withPath("./test/foo/bar").path());
+    }
+    
+    @Test
+    public void shouldRemoveLeadingDoubleDotSegment() {
+        URIAssert.equals("bar/temp.html", new URI().withPath("../bar/temp.html").path());
+    }
+    
+    @Test
+    public void shouldRemoveLeadingPathSeparatorAndDot() throws URISyntaxException {
+        URIAssert.equals("/test/index.html", new URI().withPath("/./test/index.html").path());
+        URIAssert.equals("http://abc.com/test/index.html", URI.parse("http://abc.com/./test/index.html").toASCII());
+    }
+    
+    @Test
+    public void shouldRemovePathSeparatorAndCompleteDotPath() {
+        URIAssert.equals("/", new URI().withPath("/.").path());
+    }
+    
+    @Test
+    public void shouldRemoveSingleDotSegmentOnlyPath() {
+        URIAssert.equals("", new URI().withPath(".").path());
+    }
+    
+    @Test
+    public void shouldRemoveDoubleDotSegmentOnlyPath() {
+        URIAssert.equals("", new URI().withPath("..").path());
+    }
+    
+    @Test
+    public void shouldRemovePathSeparatorAndCompleteDoubleDotPath() {
+        URIAssert.equals("", new URI().withPath("/..").path());
+        URIAssert.equals("/bar", new URI().withPath("/../bar").path());
+    }
+    
+    //
+    // Example taken from section 5.2.4 of RFC 3986
+    //
+    
+    @Test
+    public void shouldResolvePathWithMixedDotSegments() {
+        URIAssert.equals("/a/g", new URI().withPath("/a/b/c/./../../g").path());
+        URIAssert.equals("mid/6", new URI().withPath("mid/content=5/../6").path());
+    }
+    
+    @Test
+    public void shouldRemovePathSeparatorAndDoubleDotSegmentFromPath() {
+        URIAssert.equals("/test", new URI().withPath("/test/foo/..").path());
+        URIAssert.equals("/test", new URI().withPath("/test/foo/bar/../..").path());
+        URIAssert.equals("/test/", new URI().withPath("/foo/../test/bar/../").path());
+    }
+    
+    @Test
+    public void shouldParseURIWithLeadingDoubleDotSegments() throws URISyntaxException {
+        URIAssert.equals("http://a.c/test", URI.parse("http://a.c/../test").toASCII());
+        URIAssert.equals("http://a.c/test", URI.parse("http://a.c/../../test").toASCII());
+        URIAssert.equals("http://a.c/foo/test", URI.parse("http://a.c/../../../foo/test").toASCII());
     }
 }
 

@@ -38,7 +38,6 @@ public class URI {
           RegExScheme+":" + // scheme
           "(?:" + // authority
               "//" +
-              //"(?:((?:["+COMMON+":]|"+PERCENT+")+)@)?" + // user info
               "(?:(" + RegExUserInfo + ")@)?" +
               RegExHost +
               "(?::([0-9]*))?" + // port
@@ -49,7 +48,7 @@ public class URI {
           "|" +
           "(" +
               // path without scheme and authority
-              "(?:["+COMMON+"@]|"+PERCENT+")+(?:/["+COMMON+":%@]|"+PERCENT+")*/?" +
+              "(?:["+COMMON+"@]|"+PERCENT+")+(?:/["+COMMON+":@]|"+PERCENT+")*/?" +
               "|" + // path leading with scheme and authority
               "(?:/["+COMMON+":@]+)+/?" +
           ")" +
@@ -151,9 +150,6 @@ public class URI {
                 System.out.println("  " + i + ": " + matcher.group(i));
             }
             System.out.println(" -> " + matcher.start() + ", " + matcher.end());
-            if (matcher.start() > 0 || matcher.end() != url.length()) {
-                throw new URISyntaxException(url, "Some components could not be parsed!");
-            }
             
             String scheme   = matcher.group(1);
             String userInfo = matcher.group(2);
@@ -248,8 +244,7 @@ public class URI {
         result.append(userinfo != null && !userinfo.isEmpty() ? userinfo + "@" : "");
         result.append(host != null ? host : "");
         
-        int defaultPort = inferredPort();
-        if (port != -1 && port != defaultPort) {
+        if (port != -1 && port != inferredPort()) {
             result.append(":" + port);
         }
         return result.toString();
@@ -312,6 +307,7 @@ public class URI {
         builder.append(fragment != null ? "#" + fragment : "");
         
         String uri = builder.toString();
+        // TODO remove this check, it's redundant
         Matcher matcher = URIPattern.matcher(uri);
         if (!matcher.find() || uri.isEmpty()) {
             throw new URISyntaxException(uri, "URI representation is not valid!"); 
@@ -336,7 +332,7 @@ public class URI {
                 throw new URISyntaxException(userInfo, "User info is not valid");
             }
             username = (!parts[0].isEmpty()) ? parts[0] : null;
-            userpass = (parts.length > 1) ? parts[1] : null;
+            userpass = (parts.length > 1 && !parts[1].isEmpty()) ? parts[1] : null;
         }
     }
     
@@ -389,6 +385,7 @@ public class URI {
         if (path != null) {
             this.path = (host != null && !path.startsWith("/")) ? "/" + path : path;
             this.path = URIUtils.normalizeString(this.path, true);
+            //this.path = URIUtils.removeDotSegments(this.path);
         }
     }
     
