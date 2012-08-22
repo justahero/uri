@@ -159,11 +159,13 @@ public class URIPathTest {
     
     @Test
     public void shouldRemoveLeadingSingleDotSegment() throws URISyntaxException {
+        URIAssert.equals("", new URI().withPath("./").path());
         URIAssert.equals("test/foo/bar", new URI().withPath("./test/foo/bar").path());
     }
     
     @Test
     public void shouldRemoveLeadingDoubleDotSegment() {
+        URIAssert.equals("", new URI().withPath("../").path());
         URIAssert.equals("bar/temp.html", new URI().withPath("../bar/temp.html").path());
     }
     
@@ -171,6 +173,12 @@ public class URIPathTest {
     public void shouldRemoveLeadingPathSeparatorAndDot() throws URISyntaxException {
         URIAssert.equals("/test/index.html", new URI().withPath("/./test/index.html").path());
         URIAssert.equals("http://abc.com/test/index.html", URI.parse("http://abc.com/./test/index.html").toASCII());
+    }
+    
+    @Test
+    public void shouldRemoveMixedDotSegmentsDotSegmentsWithMixedDotSegments() {
+        URIAssert.equals("foo/bar.html", new URI().withPath("../foo/temp/../bar.html").path());
+        URIAssert.equals("/bar.html", new URI().withPath("./test/.././bar.html").path());
     }
     
     @Test

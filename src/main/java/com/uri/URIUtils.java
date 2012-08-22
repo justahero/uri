@@ -1,5 +1,6 @@
 package com.uri;
 
+import java.util.Iterator;
 import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -43,35 +44,21 @@ public class URIUtils {
         String input = new String(path);
         
         while (!input.isEmpty()) {
-            while (true) {
-                if (input.startsWith("../")) {
-                    input = input.substring(3);
-                } else if (input.startsWith("./")) {
-                    input = input.substring(2);
-                } else if (input.startsWith("/./")) {
-                    input = input.substring(2);
-                } else if (input.equals("/.")) {
-                    input = "/";
-                } else {
-                    break;
-                }
-            }
-            
-            if (input.equals(".") || input.equals("..")) {
-                input = "";
-            } else if (input.startsWith("/../")) {
+            if (input.startsWith("../") || input.startsWith("./")) {
+                input = input.substring(input.indexOf("/") + 1);
+            } else if (input.startsWith("/..")) {
                 input = input.substring(3);
                 if (!output.isEmpty()) {
                     output.pop();
                 }
-            } else if (input.equals("/..")) {
+            } else if (input.equals("/.")) {
+                input = "/";
+            } else if (input.startsWith("/.")) {
+                input = input.substring(2);
+            } else if (input.equals(".") || input.equals("..")) {
                 input = "";
-                if (!output.isEmpty()) {
-                    output.pop();
-                }
             } else {
-                int index = (input.startsWith("/")) ? 1 : 0;
-                int segmentIndex = input.indexOf("/", index);
+                int segmentIndex = input.indexOf("/", 1);
                 if (segmentIndex == -1) {
                     segmentIndex = input.length();
                 }
@@ -84,11 +71,30 @@ public class URIUtils {
             }
         }
         
-        StringBuffer result = new StringBuffer();
-        for (String part : output) {
-            result.append(part);
+        return join(output);
+    }
+    
+    
+    public static String join(final Iterable<String> container) {
+        return join(container, "");
+    }
+    
+    /**
+     * Joins a collection of strings to a single string, all parts are merged with a delimiter string.
+     * 
+     * @param container
+     * @param delimiter
+     * @return
+     */
+    public static String join(final Iterable<String> container, final String delimiter) {
+        StringBuilder builder = new StringBuilder();
+        Iterator<String> it = container.iterator();
+        while (it.hasNext()) {
+            builder.append(it.next());
+            if (it.hasNext())
+                builder.append(delimiter);
         }
-        return result.toString();
+        return builder.toString();
     }
 }
 
