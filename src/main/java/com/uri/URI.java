@@ -385,7 +385,7 @@ public class URI {
         if (path != null) {
             this.path = (host != null && !path.startsWith("/")) ? "/" + path : path;
             this.path = URIUtils.normalizeString(this.path, true);
-            //this.path = URIUtils.removeDotSegments(this.path);
+            this.path = URIUtils.removeDotSegments(this.path);
         }
     }
     
