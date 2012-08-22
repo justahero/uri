@@ -118,7 +118,7 @@ public class URI {
     }
     
     public URI withPort(int port) throws URISyntaxException {
-        parsePort("" + port); // TODO check port before!
+        parsePort("" + port);
         return this;
     }
     
@@ -346,26 +346,14 @@ public class URI {
             return;
         }
         if (NamedHostPattern.matcher(host).matches()) {
-            parseNamedHost(host);
+            this.host = URIUtils.normalizeString(host, false);
         } else if (IPV6HostPattern.matcher(host).matches()) {
-            parseIPV6Host(host);
+            this.host = host;
         } else if (IPFuturePattern.matcher(host).matches()) {
-            parseIPFutureHost(host);
+            this.host = host;
         } else {
             throw new URISyntaxException(host, "Host is not valid");
         }
-    }
-    
-    private void parseNamedHost(String namedHost) {
-        this.host = URIUtils.normalizeString(namedHost, false);
-    }
-
-    private void parseIPV6Host(String ipv6Host) {
-        this.host = ipv6Host;
-    }
-    
-    private void parseIPFutureHost(String ipFutureHost) {
-        this.host = ipFutureHost;
     }
     
     private void parsePort(String port) throws URISyntaxException {
