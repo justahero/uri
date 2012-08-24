@@ -427,6 +427,18 @@ public class URITest {
         URIAssert.equals("/some/where/else.html", uri.path());
         URIAssert.equals("query?string", uri.query());
     }
+    
+    //
+    // Percent Encoding and Normalization
+    //
+    
+    @Test
+    public void shouldParseURIAndNormalizeQueryString() {
+        String query = "auth[date]=Fri, 24 Aug 2012 11:07:46 GMT&auth[signature]=e8ed8105219d62279814a82fc26bf22d";
+        String expected = "auth[date]=Fri%2C%2024%20Aug%202012%2011%3A07%3A46%20GMT&auth[signature]=e8ed8105219d62279814a82fc26bf22d";
+        URI uri = new URI().withQuery(query);
+        URIAssert.equals(expected, uri.query());
+    }
 }
 
 

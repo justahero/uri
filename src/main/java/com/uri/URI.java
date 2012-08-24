@@ -2,7 +2,6 @@ package com.uri;
 
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -33,7 +32,7 @@ public class URI {
     private final static String RegExIPFuture  = "(?:\\[v["+HEX+".]+["+COMMON+":]+\\])";
     private final static String RegExHost      = "("+RegExNamedHost+"|"+RegExIPV6Host+"|"+RegExIPFuture+")?";
     
-    private final static String RegExQuery     = "(?:\\?(["+COMMON+":@/?\\[\\]]*))";
+    private final static String RegExQuery     = "(?:\\?(["+COMMON+":@/?\\[\\]%]*))";
     private final static String RegExFragment  = "(?:\\#(["+COMMON+":@/?]*))";
     
     private final static String RegExRequestURI = "(/?["+COMMON+":@]+(?:/["+COMMON+":@]+)*/?)?"+RegExQuery+"?"+RegExFragment+"?";
@@ -72,7 +71,7 @@ public class URI {
     private final static Pattern IPV6HostPattern;
     private final static Pattern IPFuturePattern;
     
-    private final List<NameValuePair> queries = new ArrayList<NameValuePair>();
+    private final Vector<NameValuePair> queries = new Vector<NameValuePair>();
     private String scheme    = null;
     private String username  = null;
     private String userpass  = null;
@@ -159,13 +158,13 @@ public class URI {
     }
     
     public static URI parse(String url) throws URISyntaxException {
-        System.out.println("Parsing: " + url);
+//        System.out.println("Parsing: " + url);
         Matcher matcher = URIPattern.matcher(url);
         if (matcher.find()) {
-            for (int i = 1; i < matcher.groupCount(); i++) {
-                System.out.println("  " + i + ": " + matcher.group(i));
-            }
-            System.out.println(" -> " + matcher.start() + ", " + matcher.end());
+//            for (int i = 1; i < matcher.groupCount(); i++) {
+//                System.out.println("  " + i + ": " + matcher.group(i));
+//            }
+//            System.out.println(" -> " + matcher.start() + ", " + matcher.end());
             
             String scheme   = matcher.group(1);
             String userInfo = matcher.group(2);
@@ -245,6 +244,10 @@ public class URI {
             result.add(pair.toString());
         }
         return this.queries.isEmpty() ? null : URIUtils.join(result, "&");
+    }
+    
+    public List<NameValuePair> queries() {
+        return this.queries;
     }
     
     public String fragment() {

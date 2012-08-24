@@ -8,6 +8,8 @@ import java.util.regex.Pattern;
 public class URIUtils {
     
     final static String  UnreservedChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~";
+    final static String  SubDelimsChars  = "!$&'()*+;=";
+    final static String  QueryChars      = UnreservedChars + SubDelimsChars + "[]?/";
     final static Pattern PercentEncodingPattern = Pattern.compile("(?:%([a-fA-F0-9]{2}))");
     
     public static String normalizeString(String text, boolean ignoreCase) {
@@ -31,6 +33,15 @@ public class URIUtils {
             return (ignoreCase) ? c : c.toLowerCase();
         }
         return "%" + hexValue.toUpperCase();
+    }
+    
+    public static String getPercentEncodedChar(char c, final String charList) {
+        int index = charList.indexOf(c);
+        if (index == -1) {
+            int value = (int)c;
+            return ("%" + Integer.toHexString(value)).toUpperCase();
+        }
+        return String.valueOf(c);
     }
     
     /**
@@ -95,6 +106,14 @@ public class URIUtils {
                 builder.append(delimiter);
         }
         return builder.toString();
+    }
+    
+    public static String encodeQuery(String query) {
+        StringBuffer result = new StringBuffer();
+        for (int i = 0; i < query.length(); i++) {
+            result.append(getPercentEncodedChar(query.charAt(i), QueryChars));
+        }
+        return result.toString();
     }
 }
 
