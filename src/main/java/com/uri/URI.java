@@ -2,8 +2,12 @@ package com.uri;
 
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -16,6 +20,8 @@ public class URI {
     private final static String HEX            = "a-fA-F0-9";
     private final static String UNRESERVED     = ALPHA + DIGIT + "-._~";
     private final static String SUBDELIM       = "!$&'()*+,;=";
+    //private final static String GENDELIM       = ":/?#[]@";
+    //private final static String RESERVED       = GENDELIM + SUBDELIM;
     private final static String COMMON         = UNRESERVED + SUBDELIM;
     private final static String PERCENT        = "%["+HEX+"]{2}";
     
@@ -27,7 +33,7 @@ public class URI {
     private final static String RegExIPFuture  = "(?:\\[v["+HEX+".]+["+COMMON+":]+\\])";
     private final static String RegExHost      = "("+RegExNamedHost+"|"+RegExIPV6Host+"|"+RegExIPFuture+")?";
     
-    private final static String RegExQuery     = "(?:\\?(["+COMMON+":@/?]*))";
+    private final static String RegExQuery     = "(?:\\?(["+COMMON+":@/?\\[\\]]*))";
     private final static String RegExFragment  = "(?:\\#(["+COMMON+":@/?]*))";
     
     private final static String RegExRequestURI = "(/?["+COMMON+":@]+(?:/["+COMMON+":@]+)*/?)?"+RegExQuery+"?"+RegExFragment+"?";
@@ -66,13 +72,13 @@ public class URI {
     private final static Pattern IPV6HostPattern;
     private final static Pattern IPFuturePattern;
     
+    private final List<NameValuePair> queries = new ArrayList<NameValuePair>();
     private String scheme    = null;
     private String username  = null;
     private String userpass  = null;
     private String host      = null;
     private int    port      = -1;
     private String path      = null;
-    private String query     = null;
     private String fragment  = null;
     
     static {
@@ -118,7 +124,7 @@ public class URI {
     }
     
     public URI withPort(int port) throws URISyntaxException {
-        parsePort("" + port); // TODO check port before!
+        parsePort("" + port);
         return this;
     }
     
@@ -134,6 +140,16 @@ public class URI {
     
     public URI withQuery(String query) {
         parseQuery(query);
+        return this;
+    }
+    
+    public URI addParam(String key, String value) {
+        parseQuery(key, value);
+        return this;
+    }
+    
+    public URI sortQuery() {
+        Collections.sort(this.queries);
         return this;
     }
     
@@ -166,14 +182,16 @@ public class URI {
                 path = matcher.group(8);
             }
             String query = matcher.group(9);
+            String fragment = matcher.group(10);
             
             URI uri = new URI()
                 .withScheme(scheme)
                 .withUserInfo(userInfo)
+                .withHost(host)
                 .withPort(port)
                 .withPath(path)
                 .withQuery(query)
-                .withHost(host);
+                .withFragment(fragment);
             return uri;
         }
         throw new URISyntaxException(url, "Some components could not be parsed!");
@@ -222,7 +240,11 @@ public class URI {
     }
     
     public String query() {
-        return query;
+        Vector<String> result = new Vector<String>();
+        for (NameValuePair pair : this.queries) {
+            result.add(pair.toString());
+        }
+        return this.queries.isEmpty() ? null : URIUtils.join(result, "&");
     }
     
     public String fragment() {
@@ -230,6 +252,7 @@ public class URI {
     }
     
     public String requestURI() {
+        String query = query();
         StringBuilder builder = new StringBuilder();
         builder.append(path != null ? path : "");
         builder.append(query != null ? "?" + query : "");
@@ -249,7 +272,7 @@ public class URI {
         }
         return result.toString();
     }
-
+    
     public String site() {
         String authority = authority();
         String scheme = scheme();
@@ -280,6 +303,7 @@ public class URI {
         String authority = authority();
         String path = path();
         String site = site();
+        String query = query();
         
         if (username == null && userpass != null) {
             throw new URISyntaxException(userinfo(), "Userpass given but no username");
@@ -346,26 +370,14 @@ public class URI {
             return;
         }
         if (NamedHostPattern.matcher(host).matches()) {
-            parseNamedHost(host);
+            this.host = URIUtils.normalizeString(host, false);
         } else if (IPV6HostPattern.matcher(host).matches()) {
-            parseIPV6Host(host);
+            this.host = host;
         } else if (IPFuturePattern.matcher(host).matches()) {
-            parseIPFutureHost(host);
+            this.host = host;
         } else {
             throw new URISyntaxException(host, "Host is not valid");
         }
-    }
-    
-    private void parseNamedHost(String namedHost) {
-        this.host = URIUtils.normalizeString(namedHost, false);
-    }
-
-    private void parseIPV6Host(String ipv6Host) {
-        this.host = ipv6Host;
-    }
-    
-    private void parseIPFutureHost(String ipFutureHost) {
-        this.host = ipFutureHost;
     }
     
     private void parsePort(String port) throws URISyntaxException {
@@ -389,9 +401,25 @@ public class URI {
         }
     }
     
+    private void parseQuery(String key, String value) {
+        key   = (key != null && !key.isEmpty()) ? key : null;
+        value = (value != null && !value.isEmpty()) ? value : null;
+        if (key != null || value != null) {
+            this.queries.add(new NameValuePair(key, value));
+        }
+    }
+    
     private void parseQuery(String query) {
+        queries.clear();
         if (query != null) {
-            this.query = query;
+            String delimiter = "&";
+            String[] parts = query.split(delimiter);
+            for (String part : parts) {
+                String[] pair = part.split("=");
+                String key = pair[0];
+                String value = (pair.length == 2) ? pair[1] : null;
+                parseQuery(key, value);
+            }
         }
     }
     
@@ -403,8 +431,8 @@ public class URI {
     
     private void parseRequestURI(String request) {
         this.path = null;
-        this.query = null;
         this.fragment = null;
+        this.queries.clear();
         Matcher matcher = RequestURIPattern.matcher(request);
         if (matcher.matches()) {
             String path = matcher.group(1);

@@ -2,7 +2,7 @@ package com.uri;
 
 import java.net.URISyntaxException;
 
-import junit.framework.Assert;
+import org.junit.Assert;
 
 public class URIAssert {
     
