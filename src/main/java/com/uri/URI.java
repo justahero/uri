@@ -118,6 +118,7 @@ public class URI {
     }
     
     public URI withScheme(String scheme) throws URISyntaxException {
+        this.scheme = null;
         parseScheme(scheme);
         return this;
     }
@@ -158,14 +159,8 @@ public class URI {
     }
     
     public static URI parse(String url) throws URISyntaxException {
-//        System.out.println("Parsing: " + url);
         Matcher matcher = URIPattern.matcher(url);
         if (matcher.find()) {
-//            for (int i = 1; i < matcher.groupCount(); i++) {
-//                System.out.println("  " + i + ": " + matcher.group(i));
-//            }
-//            System.out.println(" -> " + matcher.start() + ", " + matcher.end());
-            
             String scheme   = matcher.group(1);
             String userInfo = matcher.group(2);
             String host     = matcher.group(3);
@@ -348,8 +343,8 @@ public class URI {
             if (!matcher.matches()) {
                 throw new URISyntaxException(scheme, "No valid scheme");
             }
+            this.scheme = scheme.toLowerCase();
         }
-        this.scheme = scheme;
     }
     
     private void parseUserInfo(String userInfo) throws URISyntaxException {

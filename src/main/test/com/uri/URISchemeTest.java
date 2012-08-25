@@ -2,6 +2,8 @@ package com.uri;
 
 import java.net.URISyntaxException;
 
+import junit.framework.Assert;
+
 import org.junit.Test;
 
 public class URISchemeTest {
@@ -57,4 +59,22 @@ public class URISchemeTest {
         URIAssert.equals("t.a+b-c", URI.parse("t.a+b-c://test.com").scheme());
     }
     
+    @Test
+    public void shouldParseURIAndTransformSchemeToLowerCase() throws URISyntaxException {
+        URI uri = URI.parse("hTTP://www.example.com");
+        URIAssert.equals("http", uri.scheme());
+        URIAssert.equals("http://www.example.com", uri.toASCII());
+    }
+    
+    @Test
+    public void shouldConstructURIAndTransformSchemeToLowerCase() throws URISyntaxException {
+        URI uri = new URI().withScheme("TELNET").withHost("example.com");
+        URIAssert.equals("telnet", uri.scheme());
+    }
+    
+    @Test
+    public void shouldReassignSchemeAfterParsingURI() throws URISyntaxException {
+        URI uri = URI.parse("http://example.com").withScheme(null);
+        Assert.assertNull(uri.scheme());
+    }
 }

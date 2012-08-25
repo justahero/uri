@@ -9,7 +9,7 @@ public class URIUtils {
     
     final static String  UnreservedChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~";
     final static String  SubDelimsChars  = "!$&'()*+;=";
-    final static String  QueryChars      = UnreservedChars + SubDelimsChars + "[]?/";
+    final static String  QueryChars      = UnreservedChars + SubDelimsChars + "?/";
     final static Pattern PercentEncodingPattern = Pattern.compile("(?:%([a-fA-F0-9]{2}))");
     
     public static String normalizeString(String text, boolean ignoreCase) {
