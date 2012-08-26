@@ -448,7 +448,39 @@ public class URITest {
         URI second = URI.parse("eXAMPLE://a/./b/../b/%63/%7bfoo%7d");
         URIAssert.equals(first.toASCII(), second.toASCII());
     }
-
+    
+    // section 6.2.2.1 Case normalization
+    
+    @Test
+    public void shouldNormalizeSchemeAndHostWithCase() throws URISyntaxException {
+        URIAssert.equals("http://www.example.com", URI.parse("HTTP://WWW.EXAMPLE.COM").toASCII());
+    }
+    
+    @Test
+    public void shouldNormalizePercentEncodedOctets() throws URISyntaxException {
+        URIAssert.equals("www.%3F%5B%5D.com", new URI().withHost("www.%3f%5b%5d.com").host());
+    }
+    
+    // TODO this normalization has to be done for all components
+    
+    @Test
+    public void shouldNormalizeAndTransformOctetsToUnreservedChars() throws URISyntaxException {
+        URI uri = URI.parse("http://www.%61%62%63%64%65%66.com");
+        URIAssert.equals("http://www.abcdef.com", uri.toASCII());
+    }
+    
+    // section 6.2.3 Scheme-based normalization (http)
+    
+    @Test
+    public void shouldNormalizeHostnameOfHttpScheme() throws URISyntaxException {
+        URI expected = URI.parse("http://www.example.com/");
+        URIAssert.equals(expected.toASCII(), URI.parse("http://www.example.com").toASCII());
+        URIAssert.equals(expected.toASCII(), URI.parse("http://www.example.com/").toASCII());
+        URIAssert.equals(expected.toASCII(), URI.parse("http://www.example.com:/").toASCII());
+        URIAssert.equals(expected.toASCII(), URI.parse("http://www.example.com:80/").toASCII());
+    }
+    
+    
 }
 
 
