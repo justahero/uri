@@ -1,35 +1,60 @@
 package com.uri;
 
+import java.net.URISyntaxException;
 import java.util.Iterator;
 import java.util.Stack;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class URIUtils {
     
-    final static String  UnreservedChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~";
-    final static String  SubDelimsChars  = "!$&'()*+;=";
-    final static String  QueryChars      = UnreservedChars + SubDelimsChars + "?/";
-    final static Pattern PercentEncodingPattern = Pattern.compile("(?:%([a-fA-F0-9]{2}))");
+    final static String  ALPHA      = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    final static String  DIGIT      = "0123456789";
+    final static String  HEXDIGIT   = "abcdefABCDEF" + DIGIT;
+    final static String  GENDELIMS  = ":/?#[]@";
+    final static String  SUBDELIMS  = "!$&'()*+;=";
     
-    public static String normalizeString(String text, boolean ignoreCase) {
-        StringBuilder result = new StringBuilder(ignoreCase ? text : text.toLowerCase());
-        Matcher matcher = PercentEncodingPattern.matcher(result);
-        int index = 0;
-        while (matcher.find(index++)) {
-            String hexString = matcher.group(1);
-            String replaced = URIUtils.getPercentEncodedChar(hexString, ignoreCase);
-            result.replace(matcher.start(), matcher.end(), replaced);
-            matcher.reset();
+    final static String  UNRESERVED = ALPHA + DIGIT + "-._~";
+    final static String  RESERVED   = GENDELIMS + SUBDELIMS;
+    final static String  PERCENT    = "%";
+    final static String  PCHAR      = UNRESERVED + SUBDELIMS + PERCENT;
+    
+    final static String  QUERY      = PCHAR + "/" + "?";
+    final static String  REGNAME    = UNRESERVED + PERCENT + SUBDELIMS;
+    
+    final static Pattern PercentEncodingPattern = Pattern.compile("(?:%([0-9a-fA-F]{2}))");
+    
+    public static String normalize(String query, String charList) {
+        StringBuffer result = new StringBuffer();
+        for (int i = 0; i < query.length(); i++) {
+            result.append(getPercentEncodedChar(query.charAt(i), charList));
+        }
+        return result.toString();
+    }
+
+    public static String normalizeString(String text, boolean ignoreCase) throws URISyntaxException {
+        StringBuffer result = new StringBuffer(ignoreCase ? text : text.toLowerCase());
+        try {
+            int index = 0;
+            int found = 0;
+            while ((found = result.indexOf("%", index)) != -1) {
+                if (found < result.length() - 2) {
+                    String hexString = result.substring(found + 1, found + 3);
+                    String replaced = URIUtils.getPercentEncodedChar(hexString, ignoreCase);
+                    result.replace(found, found + 3, replaced);
+                }
+                index++;
+            }
+        } catch (Exception e) {
+            throw new URISyntaxException(text, "Failed to normalize string");
         }
         return result.toString();
     }
     
-    public static String getPercentEncodedChar(String hexValue, boolean ignoreCase) {
+    private static String getPercentEncodedChar(String hexValue, boolean ignoreCase) {
         int value = Integer.parseInt(hexValue, 16);
         int index = 0;
-        if ((index = UnreservedChars.indexOf(value)) != -1) {
-            String c = "" + UnreservedChars.charAt(index);
+        if ((index = UNRESERVED.indexOf(value)) != -1) {
+            String c = "" + UNRESERVED.charAt(index);
             return (ignoreCase) ? c : c.toLowerCase();
         }
         return "%" + hexValue.toUpperCase();
@@ -39,7 +64,7 @@ public class URIUtils {
         int index = charList.indexOf(c);
         if (index == -1) {
             int value = (int)c;
-            return ("%" + Integer.toHexString(value)).toUpperCase();
+            return ("%" + (value < 16 ? "0" : "") + Integer.toHexString(value)).toUpperCase();
         }
         return String.valueOf(c);
     }
@@ -106,14 +131,6 @@ public class URIUtils {
                 builder.append(delimiter);
         }
         return builder.toString();
-    }
-    
-    public static String encodeQuery(String query) {
-        StringBuffer result = new StringBuffer();
-        for (int i = 0; i < query.length(); i++) {
-            result.append(getPercentEncodedChar(query.charAt(i), QueryChars));
-        }
-        return result.toString();
     }
 }
 

@@ -54,13 +54,13 @@ public class URITest {
     }
     
     @Test
-    public void shouldConstructURIOnlyWithRequestURI() {
+    public void shouldConstructURIOnlyWithRequestURI() throws URISyntaxException {
         URI uri = new URI().withRequestURI("/test/image.png");
         URIAssert.equals("/test/image.png", uri.requestURI());
     }
     
     @Test
-    public void shouldConstructURIWithComplexRequestURI() {
+    public void shouldConstructURIWithComplexRequestURI() throws URISyntaxException {
         URI uri = new URI().withRequestURI("/test/foo.html?key=value#top");
         URIAssert.equals("/test/foo.html?key=value#top", uri.requestURI());
         URIAssert.equals("/test/foo.html", uri.path());
@@ -68,14 +68,14 @@ public class URITest {
         URIAssert.equals("top", uri.fragment());
     }
     
-    @Test(expected=URISyntaxException.class)
-    public void shouldFailWithHostContainingInvalidCharacters() throws URISyntaxException {
-        new URI().withHost("<invalid>");
+    @Test
+    public void shouldConstructHostContainingReservedCharacters() throws URISyntaxException {
+        URIAssert.equals("%3Chostname%3E", new URI().withHost("<hostname>").host());
     }
     
-    @Test(expected=URISyntaxException.class)
-    public void shouldFailWhenHostContainsSpaces() throws URISyntaxException {
-        new URI().withHost("\t \n");
+    @Test
+    public void shouldConstructHostContainingSpaces() throws URISyntaxException {
+        URIAssert.equals("%09%20%0A", new URI().withHost("\t \n").host());
     }
     
     @Test(expected=URISyntaxException.class)
