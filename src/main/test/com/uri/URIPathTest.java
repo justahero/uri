@@ -164,7 +164,7 @@ public class URIPathTest {
     }
     
     @Test
-    public void shouldRemoveLeadingDoubleDotSegment() {
+    public void shouldRemoveLeadingDoubleDotSegment() throws URISyntaxException {
         URIAssert.equals("", new URI().withPath("../").path());
         URIAssert.equals("bar/temp.html", new URI().withPath("../bar/temp.html").path());
     }
@@ -176,28 +176,28 @@ public class URIPathTest {
     }
     
     @Test
-    public void shouldRemoveMixedDotSegmentsDotSegmentsWithMixedDotSegments() {
+    public void shouldRemoveMixedDotSegmentsDotSegmentsWithMixedDotSegments() throws URISyntaxException {
         URIAssert.equals("foo/bar.html", new URI().withPath("../foo/temp/../bar.html").path());
         URIAssert.equals("/bar.html", new URI().withPath("./test/.././bar.html").path());
     }
     
     @Test
-    public void shouldRemovePathSeparatorAndCompleteDotPath() {
+    public void shouldRemovePathSeparatorAndCompleteDotPath() throws URISyntaxException {
         URIAssert.equals("/", new URI().withPath("/.").path());
     }
     
     @Test
-    public void shouldRemoveSingleDotSegmentOnlyPath() {
+    public void shouldRemoveSingleDotSegmentOnlyPath() throws URISyntaxException {
         URIAssert.equals("", new URI().withPath(".").path());
     }
     
     @Test
-    public void shouldRemoveDoubleDotSegmentOnlyPath() {
+    public void shouldRemoveDoubleDotSegmentOnlyPath() throws URISyntaxException {
         URIAssert.equals("", new URI().withPath("..").path());
     }
     
     @Test
-    public void shouldRemovePathSeparatorAndCompleteDoubleDotPath() {
+    public void shouldRemovePathSeparatorAndCompleteDoubleDotPath() throws URISyntaxException {
         URIAssert.equals("", new URI().withPath("/..").path());
         URIAssert.equals("/bar", new URI().withPath("/../bar").path());
     }
@@ -207,13 +207,13 @@ public class URIPathTest {
     //
     
     @Test
-    public void shouldResolvePathWithMixedDotSegments() {
+    public void shouldResolvePathWithMixedDotSegments() throws URISyntaxException {
         URIAssert.equals("/a/g", new URI().withPath("/a/b/c/./../../g").path());
         URIAssert.equals("mid/6", new URI().withPath("mid/content=5/../6").path());
     }
     
     @Test
-    public void shouldRemovePathSeparatorAndDoubleDotSegmentFromPath() {
+    public void shouldRemovePathSeparatorAndDoubleDotSegmentFromPath() throws URISyntaxException {
         URIAssert.equals("/test", new URI().withPath("/test/foo/..").path());
         URIAssert.equals("/test", new URI().withPath("/test/foo/bar/../..").path());
         URIAssert.equals("/test/", new URI().withPath("/foo/../test/bar/../").path());

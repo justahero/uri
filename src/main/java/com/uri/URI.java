@@ -19,47 +19,44 @@ public class URI {
     private final static String HEX            = "a-fA-F0-9";
     private final static String UNRESERVED     = ALPHA + DIGIT + "-._~";
     private final static String SUBDELIM       = "!$&'()*+,;=";
-    //private final static String GENDELIM       = ":/?#[]@";
-    //private final static String RESERVED       = GENDELIM + SUBDELIM;
     private final static String COMMON         = UNRESERVED + SUBDELIM;
     private final static String PERCENT        = "%["+HEX+"]{2}";
     
     private final static String RegExUserInfo  = "(?:["+COMMON+":]|"+PERCENT+")*";
     private final static String RegExScheme    = "^(["+ALPHA+"]+["+ALPHA+DIGIT+"+-.]*)";
     
-    private final static String RegExNamedHost = "(?:["+UNRESERVED+"]|"+PERCENT+")*";
+    private final static String RegExNamedHost = "(?:[^\\[\\]:/?#]*|"+PERCENT+")*";
     private final static String RegExIPV6Host  = "\\[["+HEX+":.]+\\]";
     private final static String RegExIPFuture  = "(?:\\[v["+HEX+".]+["+COMMON+":]+\\])";
     private final static String RegExHost      = "("+RegExNamedHost+"|"+RegExIPV6Host+"|"+RegExIPFuture+")?";
     
     private final static String RegExQuery     = "(?:\\?(["+COMMON+":@/?\\[\\]%]*))";
-    private final static String RegExFragment  = "(?:\\#(["+COMMON+":@/?]*))";
+    private final static String RegExRequestURI = "(/?["+COMMON+":@]+(?:/["+COMMON+":@]+)*/?)?"+RegExQuery+"?";
     
-    private final static String RegExRequestURI = "(/?["+COMMON+":@]+(?:/["+COMMON+":@]+)*/?)?"+RegExQuery+"?"+RegExFragment+"?";
-    
-    private final static String RegExURI =
+    // /^(([^:\/?#]+):)?(\/\/([^\/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?/
+    private final static String RegExNormalizedURI =
           "\\A" +
           "(?:" +
-          RegExScheme+":" + // scheme
-          "(?:" + // authority
-              "//" +
-              "(?:(" + RegExUserInfo + ")@)?" +
-              RegExHost +
-              "(?::([0-9]*))?" + // port
-              "(/(?:["+COMMON+":@/]|"+PERCENT+")*)?" + // path
-              "|" + // no path with authority
-              "(/?["+COMMON+":@]+(/["+COMMON+":@]+)*/?)?" +
-          ")" +
+              RegExScheme+":" + // scheme
+              "(?:" + // authority
+                  "//" +
+                  "(?:(" + RegExUserInfo + ")@)?" +
+                  RegExHost +
+                  "(?::([0-9]*))?" + // port
+                  "(/(?:["+COMMON+":@/]|"+PERCENT+")*)?" + // path
+                  "|" + // no path with authority
+                  "(/?["+COMMON+":@]+(/["+COMMON+":@]+)*/?)?" +
+              ")" +
           "|" +
-          "(" +
-              // path without scheme and authority
-              "(?:["+COMMON+"@]|"+PERCENT+")+(?:/["+COMMON+":@]|"+PERCENT+")*/?" +
-              "|" + // path leading with scheme and authority
-              "(?:/["+COMMON+":@]+)+/?" +
+              "(" +
+                  // path without scheme and authority
+                  "(?:["+COMMON+"%@]+)(?:/["+COMMON+":@%]+)*?" +
+                  "|" + // path with leading slash
+                  "(?:/["+COMMON+":@]+)+/?" +
+              ")" +
           ")" +
-          ")" +
-          RegExQuery + "?" + // query string
-          RegExFragment + "?" + // fragment
+          "(?:\\?([^#]*))?" + // query string
+          "(?:#(.*))?" + // fragment
           "\\Z";
     
     private final static Pattern URIPattern;
@@ -81,7 +78,7 @@ public class URI {
     private String fragment  = null;
     
     static {
-        URIPattern        = Pattern.compile(RegExURI);
+        URIPattern        = Pattern.compile(RegExNormalizedURI);
         UserInfoPattern   = Pattern.compile(RegExUserInfo);
         SchemePattern     = Pattern.compile(RegExScheme);
         RequestURIPattern = Pattern.compile(RegExRequestURI);
@@ -90,15 +87,17 @@ public class URI {
         IPV6HostPattern  = Pattern.compile(RegExIPV6Host);
         IPFuturePattern  = Pattern.compile(RegExIPFuture);
         
-        DefaultPortMap.put("ftp",  21);
-        DefaultPortMap.put("http", 80);
-        DefaultPortMap.put("ldap", 389);
+        DefaultPortMap.put("ftp",   21);
+        DefaultPortMap.put("http",  80);
+        DefaultPortMap.put("https", 443);
+        DefaultPortMap.put("ldap",  389);
     }
     
     public URI() {
     }
     
     public URI withHost(String host) throws URISyntaxException {
+        this.host = null;
         parseHost(host);
         return this;
     }
@@ -133,7 +132,8 @@ public class URI {
         return this;
     }
     
-    public URI withPath(String path) {
+    public URI withPath(String path) throws URISyntaxException {
+        this.path = null;
         parsePath(path);
         return this;
     }
@@ -249,12 +249,16 @@ public class URI {
         return fragment;
     }
     
+    /**
+     * Returns the HTTP request URI, consisting of path and the query components of the URI.
+     * 
+     * @return
+     */
     public String requestURI() {
         String query = query();
         StringBuilder builder = new StringBuilder();
         builder.append(path != null ? path : "");
         builder.append(query != null ? "?" + query : "");
-        builder.append(fragment != null ? "#" + fragment : "");
         return builder.toString();
     }
     
@@ -285,7 +289,9 @@ public class URI {
         return (builder.length() > 0) ? builder.toString() : null;
     }
     
-    public URI withRequestURI(String request) {
+    public URI withRequestURI(String request) throws URISyntaxException {
+        this.path = null;
+        this.queries.clear();
         parseRequestURI(request);
         return this;
     }
@@ -297,6 +303,14 @@ public class URI {
         return -1;
     }
     
+    public boolean isAbsolute() {
+        return !isRelative();
+    }
+    
+    public boolean isRelative() {
+        return (scheme == null);
+    }
+
     public String toASCII() throws URISyntaxException {
         String authority = authority();
         String path = path();
@@ -337,6 +351,15 @@ public class URI {
         return uri;
     }
     
+    public String normalizeHost() {
+        // TODO
+        return host;
+    }
+    
+    public String normalizeQuery() {
+        return query();
+    }
+    
     private void parseScheme(String scheme) throws URISyntaxException {
         if (scheme != null) {
             Matcher matcher = SchemePattern.matcher(scheme);
@@ -368,7 +391,7 @@ public class URI {
             return;
         }
         if (NamedHostPattern.matcher(host).matches()) {
-            this.host = URIUtils.normalizeString(host, false);
+            this.host = URIUtils.normalize(URIUtils.normalizeString(host, false), URIUtils.REGNAME);
         } else if (IPV6HostPattern.matcher(host).matches()) {
             this.host = host;
         } else if (IPFuturePattern.matcher(host).matches()) {
@@ -391,7 +414,7 @@ public class URI {
         }
     }
     
-    private void parsePath(String path) {
+    private void parsePath(String path) throws URISyntaxException {
         if (path != null) {
             this.path = (host != null && !path.startsWith("/")) ? "/" + path : path;
             this.path = URIUtils.normalizeString(this.path, true);
@@ -427,21 +450,19 @@ public class URI {
         }
     }
     
-    private void parseRequestURI(String request) {
-        this.path = null;
-        this.fragment = null;
-        this.queries.clear();
+    private void parseRequestURI(String request) throws URISyntaxException {
+        boolean found = (scheme != null) ? scheme.matches("^https?$") : false;
+        if (isAbsolute() && !found) {
+            throw new URISyntaxException(request, "Cannot set an HTTP request URI for non-HTTP URI.");
+        }
+        
         Matcher matcher = RequestURIPattern.matcher(request);
         if (matcher.matches()) {
             String path = matcher.group(1);
             String query = matcher.group(2);
-            String fragment = matcher.group(3);
-            
             parsePath(path);
             parseQuery(query);
-            parseFragment(fragment);
         }
     }
-    
 }
 
