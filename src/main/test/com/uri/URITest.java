@@ -56,16 +56,42 @@ public class URITest {
     @Test
     public void shouldConstructURIOnlyWithRequestURI() throws URISyntaxException {
         URI uri = new URI().withRequestURI("/test/image.png");
-        URIAssert.equals("/test/image.png", uri.requestURI());
+        URIAssert.equals("/test/image.png", uri.toASCII());
     }
     
     @Test
     public void shouldConstructURIWithComplexRequestURI() throws URISyntaxException {
-        URI uri = new URI().withRequestURI("/test/foo.html?key=value#top");
-        URIAssert.equals("/test/foo.html?key=value#top", uri.requestURI());
+        URI uri = new URI().withRequestURI("/test/foo.html?key=value");
+        URIAssert.equals("/test/foo.html?key=value", uri.requestURI());
         URIAssert.equals("/test/foo.html", uri.path());
         URIAssert.equals("key=value", uri.query());
-        URIAssert.equals("top", uri.fragment());
+    }
+    
+    @Test(expected=URISyntaxException.class)
+    public void shouldNotConstructFtpURIWithRequestURI() throws URISyntaxException {
+        URI uri = new URI().withScheme("ftp").withHost("example.com");
+        uri.withRequestURI("test?foo=bar");
+    }
+    
+    @Test
+    public void shouldConstructHttpsURIWithRequestURI() throws URISyntaxException {
+        URI uri = new URI().withScheme("https").withHost("example.com");
+        uri.withRequestURI("test?foo=bar");
+    }
+    
+    @Test
+    public void shouldParseURIWithReassigningRequestURI() throws URISyntaxException {
+        URI uri = URI.parse("http://www.example.com/path?query=foo#fragment");
+        uri.withRequestURI("temp?foo=bar");
+        URIAssert.equals("http://www.example.com/temp?foo=bar#fragment", uri.toASCII());
+        URIAssert.equals("/temp?foo=bar", uri.requestURI());
+    }
+    
+    @Test
+    public void shouldParseURIAndReassignToEmptyRequestURI() throws URISyntaxException {
+        URI uri = URI.parse("http://www.example.com/path?query#fragment");
+        uri.withRequestURI("");
+        URIAssert.equals("http://www.example.com#fragment", uri.toASCII());
     }
     
     @Test
@@ -227,6 +253,12 @@ public class URITest {
     }
     
     @Test
+    public void shouldConstructHttpsURI() throws URISyntaxException {
+        URI uri = new URI().withScheme("https").withHost("example.com").withPath("path");
+        Assert.assertEquals(443, uri.inferredPort());
+    }
+    
+    @Test
     public void shouldConstructHttpURI() throws URISyntaxException {
         URI uri = new URI()
             .withScheme("http")
@@ -252,6 +284,7 @@ public class URITest {
             .withHost("[2001:db8::7]")
             .withPath("/c=GB")
             .withQuery("objectClass?one");
+        Assert.assertEquals(389, uri.inferredPort());
         URIAssert.equals("ldap://[2001:db8::7]/c=GB?objectClass?one", uri.toASCII());
     }
     
@@ -409,12 +442,13 @@ public class URITest {
     
     @Test
     public void shouldConstructURIWithRequestURI() throws URISyntaxException {
-        URI uri = new URI().withScheme("http").withHost("www.example.com").withRequestURI("/test?key=temp#bottom");
+        URI uri = new URI().withScheme("http").withHost("www.example.com").withRequestURI("/test?key=temp").withFragment("bottom");
         URIAssert.equals("http", uri.scheme());
         URIAssert.equals("www.example.com", uri.host());
         URIAssert.equals("", uri.userinfo());
         URIAssert.equals("/test", uri.path());
         URIAssert.equals("key=temp", uri.query());
+        URIAssert.equals("/test?key=temp", uri.requestURI());
         URIAssert.equals("bottom", uri.fragment());
         URIAssert.equals("http://www.example.com/test?key=temp#bottom", uri.toASCII());
     }
@@ -478,6 +512,34 @@ public class URITest {
         URIAssert.equals(expected.toASCII(), URI.parse("http://www.example.com/").toASCII());
         URIAssert.equals(expected.toASCII(), URI.parse("http://www.example.com:/").toASCII());
         URIAssert.equals(expected.toASCII(), URI.parse("http://www.example.com:80/").toASCII());
+    }
+    
+    @Test
+    public void shouldParseURIAsAbsolute() throws URISyntaxException {
+        URI uri = URI.parse("http://www.example.com/path?query=2#frgament");
+        Assert.assertTrue(uri.isAbsolute());
+        Assert.assertFalse(uri.isRelative());
+    }
+    
+    @Test
+    public void shouldConstructURIAsAbsolute() throws URISyntaxException {
+        URI uri = new URI().withScheme("http").withHost("example.com");
+        Assert.assertTrue(uri.isAbsolute());
+        Assert.assertFalse(uri.isRelative());
+    }
+    
+    @Test
+    public void shouldParseURIAsRelative() throws URISyntaxException {
+        URI uri = URI.parse("relative/path/to/resource");
+        Assert.assertFalse(uri.isAbsolute());
+        Assert.assertTrue(uri.isRelative());
+    }
+    
+    @Test
+    public void shouldConstructURIAsRelative() throws URISyntaxException {
+        URI uri = new URI().withPath("relative/path/to/resource");
+        Assert.assertFalse(uri.isAbsolute());
+        Assert.assertTrue(uri.isRelative());
     }
     
     

@@ -37,3 +37,9 @@ Create a URI simply by parsing a given string.
 
 If the string conforms to the generic URI layout the string is split into its
 sub components.
+
+
+Todos
+-----
+
+Support Internationalized Domain Names (IDNA) as specified in [RFC 3940](http://www.ietf.org/rfc/rfc3490.txt)
