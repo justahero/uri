@@ -62,11 +62,19 @@ public class URIHostTest {
         URI.parse("http://www.example.com:9a");
     }
     
-    @Test
-    public void portNumberIsTooLong() throws URISyntaxException {
-        URIAssert.exception("http://www.test.de:123456");
-        URIAssert.exception("http://www.test.de:0");
-        URIAssert.exception("http://www.test.de:-10");
+    @Test(expected=URISyntaxException.class)
+    public void shouldNotParseURIWithPortAboveLimit() throws URISyntaxException {
+        URI.parse("http://www.test.de:123456");
+    }
+    
+    @Test(expected=URISyntaxException.class)
+    public void shouldNotParseURIWithZeroPort() throws URISyntaxException {
+        URI.parse("http://example.com:0");
+    }
+    
+    @Test(expected=URISyntaxException.class)
+    public void shouldNotParseURIWithNegativePort() throws URISyntaxException {
+        URI.parse("http://www.example.com:-10");
     }
     
     @Test

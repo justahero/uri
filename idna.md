@@ -103,3 +103,8 @@ An ACE label might be `xn--de-jg4avhby1noc0d` where `de-jg4avhby1noc0d` is the p
 
 
 
+
+# References
+
+* http://www.koders.com/java/fidA5FC1F237C9D005FD1BAD91769F8CF107601BA28.aspx
+* http://stackoverflow.com/questions/183485/can-anyone-recommend-a-good-free-javascript-for-punycode-to-unicode-conversion
