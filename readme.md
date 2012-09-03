@@ -1,11 +1,13 @@
 URI Parser
 ==========
 
-This Java library offers a way to parse URIs according to RFC 3986.
+This Java library offers a way to parse URIs and supports the following RFCs
 
-It offers an easy way to build URIs and allows to parse URI strings and split
-them into their sub components. 
+* [RFC 3986](http://www.ietf.org/rfc/rfc3987.txt) Uniform Resource Identifier (URI) Generic Syntax
+* [RFC 3490](http://www.ietf.org/rfc/rfc3490.txt) Internationalized Domain Names in Applications (IDNA)
 
+It offers an easy way to build URIs (with Internationalized Domain Names)
+and allows to parse URI strings and split them into their sub components. 
 
 
 Installation
@@ -42,4 +44,6 @@ sub components.
 Todos
 -----
 
-Support Internationalized Domain Names (IDNA) as specified in [RFC 3940](http://www.ietf.org/rfc/rfc3490.txt)
+* Full [RFC 3987](http://www.ietf.org/rfc/rfc3987.txt) compatibility with Internationalized
+Resource Identifier (Long term)
+* Better documentation of existing functionality
