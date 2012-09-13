@@ -44,13 +44,13 @@ public class URIQueryTest {
     @Test
     public void shouldConstructURIWithComplexQueryParameter() throws URISyntaxException {
         URI uri = new URI().withQuery("one[two][three]=four");
-        URIAssert.equals("one[two][three]=four", uri.query());
+        URIAssert.equals("one%5Btwo%5D%5Bthree%5D=four", uri.query());
     }
     
     @Test
     public void shouldParseURIWithComplexQueryParameter() throws URISyntaxException {
         URI uri = URI.parse("http://example.com/path?one[two][three]=four#fragment");
-        URIAssert.equals("one[two][three]=four", uri.query());
+        URIAssert.equals("one%5Btwo%5D%5Bthree%5D=four", uri.query());
     }
     
     @Test
@@ -93,8 +93,8 @@ public class URIQueryTest {
     public void shouldParseURIAndSortHMacAuthenticationQuery() throws URISyntaxException {
         URI uri = URI.parse("http://www.example.com/foo/bar?auth[time]=4444&auth[signature]=12345678&terminal=true");
         uri.sortQuery();
-        URIAssert.equals("auth[signature]=12345678&auth[time]=4444&terminal=true", uri.query());
-        URIAssert.equals("http://www.example.com/foo/bar?auth[signature]=12345678&auth[time]=4444&terminal=true", uri.toASCII());
+        URIAssert.equals("auth%5Bsignature%5D=12345678&auth%5Btime%5D=4444&terminal=true", uri.query());
+        URIAssert.equals("http://www.example.com/foo/bar?auth%5Bsignature%5D=12345678&auth%5Btime%5D=4444&terminal=true", uri.toASCII());
     }
 }
 

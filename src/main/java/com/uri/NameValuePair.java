@@ -14,7 +14,7 @@ public class NameValuePair implements Comparable<NameValuePair> {
         result.append((key != null) ? key : "");
         result.append((key != null && value != null) ? '=' : "");
         result.append((value != null) ? value : "");
-        return (result.length() > 0) ? result.toString() : "";
+        return (result.length() > 0) ? URIUtils.encodeQuery(result.toString()) : "";
     }
     
     @Override

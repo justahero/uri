@@ -427,6 +427,60 @@ public class URITest {
         URIAssert.equals("/some/where/else.html", uri.path());
         URIAssert.equals("query?string", uri.query());
     }
+    
+    //
+    // Percent Encoding and Normalization, see chapter 6 in RFC 3986
+    //
+    
+    @Test
+    public void shouldParseURIAndNormalizeQueryString() {
+        String query = "auth[date]=Fri, 24 Aug 2012 11:07:46 GMT&auth[signature]=e8ed8105219d62279814a82fc26bf22d";
+        String expected = "auth%5Bdate%5D=Fri%2C%2024%20Aug%202012%2011%3A07%3A46%20GMT&auth%5Bsignature%5D=e8ed8105219d62279814a82fc26bf22d";
+        URI uri = new URI().withQuery(query);
+        URIAssert.equals(expected, uri.query());
+    }
+    
+    // section 6.2.2 Syntax based normalization
+    
+    @Test
+    public void shouldNormalizeParsedURIOnSyntaxBasis() throws URISyntaxException {
+        URI first  = URI.parse("example://a/b/c/%7Bfoo%7D");
+        URI second = URI.parse("eXAMPLE://a/./b/../b/%63/%7bfoo%7d");
+        URIAssert.equals(first.toASCII(), second.toASCII());
+    }
+    
+    // section 6.2.2.1 Case normalization
+    
+    @Test
+    public void shouldNormalizeSchemeAndHostWithCase() throws URISyntaxException {
+        URIAssert.equals("http://www.example.com", URI.parse("HTTP://WWW.EXAMPLE.COM").toASCII());
+    }
+    
+    @Test
+    public void shouldNormalizePercentEncodedOctets() throws URISyntaxException {
+        URIAssert.equals("www.%3F%5B%5D.com", new URI().withHost("www.%3f%5b%5d.com").host());
+    }
+    
+    // TODO this normalization has to be done for all components
+    
+    @Test
+    public void shouldNormalizeAndTransformOctetsToUnreservedChars() throws URISyntaxException {
+        URI uri = URI.parse("http://www.%61%62%63%64%65%66.com");
+        URIAssert.equals("http://www.abcdef.com", uri.toASCII());
+    }
+    
+    // section 6.2.3 Scheme-based normalization (http)
+    
+    @Test
+    public void shouldNormalizeHostnameOfHttpScheme() throws URISyntaxException {
+        URI expected = URI.parse("http://www.example.com/");
+        URIAssert.equals(expected.toASCII(), URI.parse("http://www.example.com").toASCII());
+        URIAssert.equals(expected.toASCII(), URI.parse("http://www.example.com/").toASCII());
+        URIAssert.equals(expected.toASCII(), URI.parse("http://www.example.com:/").toASCII());
+        URIAssert.equals(expected.toASCII(), URI.parse("http://www.example.com:80/").toASCII());
+    }
+    
+    
 }
 
 
