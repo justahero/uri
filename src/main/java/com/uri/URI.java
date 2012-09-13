@@ -268,6 +268,13 @@ public class URI {
         return result.toString();
     }
     
+    /**
+     * Returns the composite site component, consisting of scheme and authority, e.g.
+     * The site component of the URI 'http://user:pass@www.example.com:1234/path?query=true#fragment'
+     * is 'http://user:pass@www.example.com:1234'
+     * 
+     * @return
+     */
     public String site() {
         String authority = authority();
         String scheme = scheme();

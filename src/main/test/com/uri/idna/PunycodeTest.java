@@ -175,6 +175,13 @@ public class PunycodeTest {
         URIAssert.equals(expected, Punycode.encode(label));
     }
     
+    @Test
+    public void shouldEncodeLongJapaneseSampleString() throws PunycodeException {
+        String label = "ほんとうにながいわけのわからないどめいんめいのらべるまだながくしないとたりない";
+        String expected = "n8jaaaaai5bhf7as8fsfk3jnknefdde3fg11amb5gzdb4wi9bya3kc6lra";
+        URIAssert.equals(expected, Punycode.encode(label));
+    }
+    
     //
     // Decoding samples mostly taken from Addressable Ruby gem rspec
     //
@@ -197,6 +204,13 @@ public class PunycodeTest {
     public void shouldDecodeAsianString() throws PunycodeException {
         String label = "8ws00zhy3a";
         String expected = "詹姆斯";
+        URIAssert.equals(expected, Punycode.decode(label));
+    }
+    
+    @Test
+    public void shouldDecodeInternationalizationSample() throws PunycodeException {
+        String label = "itrntinliztin-vdb0a5exd8ewcye";
+        String expected = "iñtërnâtiônàlizætiøn";
         URIAssert.equals(expected, Punycode.decode(label));
     }
 }
