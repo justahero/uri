@@ -4,8 +4,7 @@ URI Parser
 This Java library offers a way to parse URIs and supports the following RFCs
 
 * [RFC 3986](http://www.ietf.org/rfc/rfc3987.txt) Uniform Resource Identifier (URI) Generic Syntax
-* [RFC 3513](http://www.ietf.org/rfc/rfc3513.txt) Internet Protocol Version 6 Addressing Architecture
-* [RFC 3490](http://www.ietf.org/rfc/rfc3490.txt) Internationalized Domain Names in Applications (IDNA)
+* [RFC 3492](http://www.ietf.org/rfc/rfc3492.txt) Punycode, for encoding Internationalized Domain Names in Applications (IDNA)
 
 It offers an easy way to build URIs (with Internationalized Domain Names)
 and allows to parse URI strings and split them into their sub components. 
