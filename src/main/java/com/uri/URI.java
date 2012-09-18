@@ -17,6 +17,8 @@ public class URI {
     
     private final static Map<String, Integer> DefaultPortMap = new HashMap<String, Integer>();
     
+    private final static char   DEFAULT_DELIMITER = '&';
+    
     private final static String ALPHA          = "a-zA-Z";
     private final static String DIGIT          = "0-9";
     private final static String HEX            = "a-fA-F0-9";
@@ -70,6 +72,8 @@ public class URI {
     private int    port      = -1;
     private String path      = null;
     private String fragment  = null;
+    
+    private char   delimiter = DEFAULT_DELIMITER;
     
     static {
         URIPattern        = Pattern.compile(RegExURI);
@@ -149,6 +153,14 @@ public class URI {
         return this;
     }
     
+    public void queryDelimiter(char delimiter) {
+        if (this.delimiter != delimiter) {
+            String query = query();
+            this.delimiter = delimiter;
+            parseQuery(query);
+        } 
+    }
+    
     public URI sortQuery() {
         Collections.sort(this.queries);
         return this;
@@ -222,14 +234,14 @@ public class URI {
     
     public String query() {
         Vector<String> result = new Vector<String>();
-        for (NameValuePair pair : this.queries) {
+        for (NameValuePair pair : queries) {
             result.add(pair.toString());
         }
-        return this.queries.isEmpty() ? null : URIUtils.join(result, "&");
+        return queries.isEmpty() ? null : URIUtils.join(result, Character.toString(delimiter));
     }
     
     public List<NameValuePair> queries() {
-        return this.queries;
+        return queries;
     }
     
     public String fragment() {
@@ -290,8 +302,8 @@ public class URI {
     }
     
     public URI withRequestURI(String request) throws URISyntaxException {
-        this.path = null;
-        this.queries.clear();
+        path = null;
+        queries.clear();
         parseRequestURI(request);
         return this;
     }
@@ -432,19 +444,22 @@ public class URI {
         key   = (key != null && !key.isEmpty()) ? key : null;
         value = (value != null && !value.isEmpty()) ? value : null;
         if (key != null || value != null) {
-            this.queries.add(new NameValuePair(key, value));
+            queries.add(new NameValuePair(key, value));
         }
     }
     
     private void parseQuery(String query) {
         queries.clear();
         if (query != null) {
-            String delimiter = "&";
-            String[] parts = query.split(delimiter);
+            String[] parts = query.split(Character.toString(delimiter));
             for (String part : parts) {
-                String[] pair = part.split("=");
-                String key = pair[0];
-                String value = (pair.length == 2) ? pair[1] : null;
+                int index = part.indexOf('=');
+                String key = part;
+                String value = null;
+                if (index != -1) {
+                    key = part.substring(0, index);
+                    value = part.substring(index + 1, part.length());
+                }
                 parseQuery(key, value);
             }
         }
@@ -470,5 +485,6 @@ public class URI {
             parseQuery(query);
         }
     }
+
 }
 
