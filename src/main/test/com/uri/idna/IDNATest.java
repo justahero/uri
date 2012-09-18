@@ -74,7 +74,7 @@ public class IDNATest {
     public void shouldConvertURIFromASCIIToUnicode() throws URISyntaxException {
         URIAssert.equals("http://www.google.com", SimpleIDN.toUnicode(URI.parse("http://www.google.com").toASCII()));
     }
-    
+/*    
     @Test
     public void shouldConvertToUnicodeURISamples() throws URISyntaxException {
         URIAssert.equals(
@@ -86,7 +86,7 @@ public class IDNATest {
     public void shouldConvertURIWithAsianHostname() throws URISyntaxException {
         URIAssert.equals("www.詹姆斯.com", SimpleIDN.toUnicode(new URI().withHost("www.xn--8ws00zhy3a.com").host()));
     }
-    
+    */
     @Test
     public void shouldParseUnicodeURIAndApplyToASCIITwice() throws URISyntaxException {
         URI uri = URI.parse("http://www.詹姆斯.com");
