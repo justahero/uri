@@ -597,5 +597,3 @@ public class URITest {
         URIAssert.equals("http://foo:bar@abcdef.com", uri.toASCII());
     }
 }
-
-
