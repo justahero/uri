@@ -542,7 +542,4 @@ public class URITest {
         Assert.assertTrue(uri.isRelative());
     }
     
-    
 }
-
-
