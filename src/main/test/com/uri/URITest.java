@@ -392,6 +392,13 @@ public class URITest {
     }
     
     @Test
+    public void shouldParseURIAndReassignPortToDefault() throws URISyntaxException {
+        URI uri = URI.parse("http://www.example.com:3456");
+        uri.withPort(80);
+        URIAssert.equals("http://www.example.com", uri.toASCII());
+    }
+    
+    @Test
     public void shouldOmitDefaultPortWhenParsingLdapURI() throws URISyntaxException {
         URI uri = URI.parse("ldap://[2001:db8::7]:389/c=GB?objectClass?one");
         Assert.assertEquals(389, uri.port());
@@ -542,4 +549,51 @@ public class URITest {
         Assert.assertTrue(uri.isRelative());
     }
     
+    @Test
+    public void shouldConstructURIWithFullAuthority() throws URISyntaxException {
+        URI uri = new URI().withScheme("http").withAuthority("test:user@example.com:1234");
+        URIAssert.equals("http", uri.scheme());
+        URIAssert.equals("test:user@example.com:1234", uri.authority());
+        URIAssert.equals("http://test:user@example.com:1234", uri.toASCII());
+    }
+    
+    @Test
+    public void shouldConstructURIWithAuthorityAndReassignWithEmptyPort() throws URISyntaxException {
+        URI uri = new URI().withScheme("http").withAuthority("www.example.com:1234");
+        uri.withAuthority("www.example.com");
+        Assert.assertEquals(-1, uri.port());
+        URIAssert.equals("http://www.example.com", uri.toASCII());
+    }
+    
+    @Test
+    public void shouldConstructURIWithAuthorityReassignWithEmptyUserinfo() throws URISyntaxException {
+        URI uri = new URI().withScheme("http").withAuthority("foo:bar@www.example.com");
+        uri.withAuthority("www.example.com");
+        URIAssert.equals("", uri.userinfo());
+        URIAssert.equals("http://www.example.com", uri.toASCII());
+    }
+    
+    @Test
+    public void shouldConstructURIWithAuthorityAndUserinfo() throws URISyntaxException {
+        URI uri = new URI().withScheme("http").withAuthority("test:bar@example.com");
+        uri.withUserInfo(null, null);
+        URIAssert.equals("http://example.com", uri.toASCII());
+        uri.withUserInfo("bar", "foo");
+        URIAssert.equals("http://bar:foo@example.com", uri.toASCII());
+    }
+    
+    @
+    Test
+    public void shouldConstructURIWithAuthorityAndPort() throws URISyntaxException {
+        URI uri = new URI().withScheme("http").withAuthority("example.com:1234");
+        uri.withPort(4444);
+        URIAssert.equals("http://example.com:4444", uri.toASCII());
+    }
+    
+    @Test
+    public void shouldConstructURIWithAuthorityAndReassignHost() throws URISyntaxException {
+        URI uri = new URI().withScheme("http").withAuthority("foo:bar@example.com");
+        uri.withHost("abcdef.com");
+        URIAssert.equals("http://foo:bar@abcdef.com", uri.toASCII());
+    }
 }

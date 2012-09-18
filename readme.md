@@ -1,10 +1,29 @@
 URI Parser
 ==========
 
-This Java library offers a way to parse URIs according to RFC 3986.
+This Java library offers a way to parse URIs and supports the following RFCs
 
-It offers an easy way to build URIs and allows to parse URI strings and split
-them into their sub components. 
+* [RFC 3986](http://www.ietf.org/rfc/rfc3987.txt) Uniform Resource Identifier (URI) Generic Syntax
+* [RFC 3513](http://www.ietf.org/rfc/rfc3513.txt) Internet Protocol Version 6 Addressing Architecture
+* [RFC 3490](http://www.ietf.org/rfc/rfc3490.txt) Internationalized Domain Names in Applications (IDNA)
+
+It offers an easy way to build URIs (with Internationalized Domain Names)
+and allows to parse URI strings and split them into their sub components. 
+
+
+Motivation
+----------
+
+A few reasons for writing this library
+
+* URI Class of Java 6 only conforms to [RFC 2396](http://www.ietf.org/rfc/rfc2396.txt) (Uniform Resource 
+Identifies: Generic Syntax). it is superseded by [RFC 3986](http://www.ietf.org/rfc/rfc3986.txt)
+* URLEncoder Class of Java 6 is not applicable for URIs, e.g. instead of `+` sign a space character
+should be `%20`
+* URI & URL have constructors with a lot of parameters but feel a bit unusable,
+parameters have to be blank or null to omit them
+* URI classes are available in different packages: `java.net`, `javax.xml.crypto`, `javax.xml.transform`,
+`java.security`, `javax.print.attribute` (or at least their class names are a bit confusing)
 
 
 
@@ -20,13 +39,27 @@ resulting jar file (in target folder) to the desired location and reference it i
 Usage
 -----
 
-### Constructing URI
+### Constructing a URI
 
 Create an URI by chaining sub components together:
 
     URI uri = new URI().withScheme("http").withHost("www.example.com").withPath("/test.png");
 
 which results in the URI string `http://www.example.com/test.png`.
+
+
+#### Queries
+
+    URI uri = new URI().withScheme("http").withHost("example.com").withQuery("page=2&per=10");
+
+results in `http://example.com?page=2&per=10`
+
+Even easier is to construct the query component by using the `addParam` method like:
+
+    URI uri = new URI().withScheme("http").withHost("example.com").addParam("page", "2").addParam("per", "10");
+
+that results in the same URI `http://example.com?page=2&per=10.
+
 
 
 ### Parsing URI
@@ -37,3 +70,15 @@ Create a URI simply by parsing a given string.
 
 If the string conforms to the generic URI layout the string is split into its
 sub components.
+
+
+Todos
+-----
+
+* Full [RFC 3987](http://www.ietf.org/rfc/rfc3987.txt) compatibility with Internationalized
+Resource Identifier (Long term)
+* Update to [RFC 5891](http://tools.ietf.org/html/rfc5891) for Internationalized 
+Domain Names in Applications (IDNA), Protocol
+* Better documentation of existing functionality
+
+

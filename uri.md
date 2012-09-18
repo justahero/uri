@@ -154,14 +154,20 @@ A few discussions on URL encoding in Java
 * http://javadoc.google-api-java-client.googlecode.com/hg/1.0.10-alpha/index.html
 
 
-### Links / Articles
+### Similar Projects / Links
 
 * [Addressable](https://github.com/sporkmonger/addressable) Ruby gem, based on RFC 3986
 * [URI Validation / Parsing](http://snipplr.com/view/6889/) - Regular Expressions
 * [Google API Java Client API](http://javadoc.google-api-java-client.googlecode.com/hg/1.0.10-alpha/index.html)
+* [urilib](https://github.com/Virtual-Light-Company/urilib) A java lib with URI / URN handling
+* [Urin](http://urin.sourceforge.net/) a URI generator in Java
+* [uirparser](http://uriparser.sourceforge.net/) a RFC 3986 compliant URI parsing library in C
 
 
 ### Test cases and validation examples
 
 * [Addressable RSpec Suite](https://github.com/Sporkmonger/Addressable/blob/master/spec/addressable/uri_spec.rb)
 * [W3 URI Testing](http://www.w3.org/2004/04/uri-rel-test.html)
+
+
+

@@ -1,5 +1,6 @@
 package com.uri;
 
+import java.net.IDN;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Collections;
@@ -9,6 +10,8 @@ import java.util.Map;
 import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import com.uri.idn.SimpleIDN;
 
 public class URI {
     
@@ -33,33 +36,24 @@ public class URI {
     private final static String RegExQuery     = "(?:\\?(["+COMMON+":@/?\\[\\]%]*))";
     private final static String RegExRequestURI = "(/?["+COMMON+":@]+(?:/["+COMMON+":@]+)*/?)?"+RegExQuery+"?";
     
-    // /^(([^:\/?#]+):)?(\/\/([^\/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?/
-    private final static String RegExNormalizedURI =
+    private final static String RegExAuthority =
+          "\\A^" +
+          "(?:([^\\[\\]]*)@)?" +   // user info
+          RegExHost+"?" +          // host
+          "(?::([^:@\\[\\]]*))?" + // port
+          "$\\Z";
+    private final static String RegExURI =
           "\\A" +
-          "(?:" +
-              RegExScheme+":" + // scheme
-              "(?:" + // authority
-                  "//" +
-                  "(?:(" + RegExUserInfo + ")@)?" +
-                  RegExHost +
-                  "(?::([0-9]*))?" + // port
-                  "(/(?:["+COMMON+":@/]|"+PERCENT+")*)?" + // path
-                  "|" + // no path with authority
-                  "(/?["+COMMON+":@]+(/["+COMMON+":@]+)*/?)?" +
-              ")" +
-          "|" +
-              "(" +
-                  // path without scheme and authority
-                  "(?:["+COMMON+"%@]+)(?:/["+COMMON+":@%]+)*?" +
-                  "|" + // path with leading slash
-                  "(?:/["+COMMON+":@]+)+/?" +
-              ")" +
-          ")" +
-          "(?:\\?([^#]*))?" + // query string
-          "(?:#(.*))?" + // fragment
+          "(?:([^:/?#]+):)?" +       // scheme
+          "(?:\\/\\/([^\\/?#]*))?" + // authority
+          "(?:([^?#]*))?" +          // path
+          "(?:\\?([^#]*))?" +        // query string
+          "(?:#(.*))?" +             // fragment
           "\\Z";
     
     private final static Pattern URIPattern;
+    private final static Pattern AuthorityPattern;
+    
     private final static Pattern UserInfoPattern;
     private final static Pattern SchemePattern;
     private final static Pattern RequestURIPattern;
@@ -78,7 +72,8 @@ public class URI {
     private String fragment  = null;
     
     static {
-        URIPattern        = Pattern.compile(RegExNormalizedURI);
+        URIPattern        = Pattern.compile(RegExURI);
+        AuthorityPattern  = Pattern.compile(RegExAuthority);
         UserInfoPattern   = Pattern.compile(RegExUserInfo);
         SchemePattern     = Pattern.compile(RegExScheme);
         RequestURIPattern = Pattern.compile(RegExRequestURI);
@@ -94,6 +89,11 @@ public class URI {
     }
     
     public URI() {
+    }
+    
+    public URI withAuthority(String authority) throws URISyntaxException {
+        parseAuthority(authority);
+        return this;
     }
     
     public URI withHost(String host) throws URISyntaxException {
@@ -123,11 +123,12 @@ public class URI {
     }
     
     public URI withPort(int port) throws URISyntaxException {
-        parsePort("" + port);
+        parsePort(Integer.toString(port));
         return this;
     }
     
     private URI withPort(String port) throws URISyntaxException {
+        this.port = -1;
         parsePort(port);
         return this;
     }
@@ -161,28 +162,14 @@ public class URI {
     public static URI parse(String url) throws URISyntaxException {
         Matcher matcher = URIPattern.matcher(url);
         if (matcher.find()) {
-            String scheme   = matcher.group(1);
-            String userInfo = matcher.group(2);
-            String host     = matcher.group(3);
-            String port     = matcher.group(4);
-            String path     = matcher.group(5);
-            if (path == null) {
-                path = matcher.group(6);
-            }
-            if (path == null) {
-                path = matcher.group(7);
-            }
-            if (path == null) {
-                path = matcher.group(8);
-            }
-            String query = matcher.group(9);
-            String fragment = matcher.group(10);
-            
+            String scheme    = matcher.group(1);
+            String authority = matcher.group(2);
+            String path      = matcher.group(3);
+            String query     = matcher.group(4);
+            String fragment  = matcher.group(5);
             URI uri = new URI()
                 .withScheme(scheme)
-                .withUserInfo(userInfo)
-                .withHost(host)
-                .withPort(port)
+                .withAuthority(authority)
                 .withPath(path)
                 .withQuery(query)
                 .withFragment(fragment);
@@ -262,6 +249,12 @@ public class URI {
         return builder.toString();
     }
     
+    /**
+     * Returns the HTTP authority part. The authority consists of user info (if available) the
+     * host (named, ipv4, ipv6 or ipfuture) and the port (if available and different from default).
+     * 
+     * @return The authority part of the URI.
+     */
     public String authority() {
         StringBuilder result = new StringBuilder();
         String userinfo = userinfo();
@@ -275,6 +268,13 @@ public class URI {
         return result.toString();
     }
     
+    /**
+     * Returns the composite site component, consisting of scheme and authority, e.g.
+     * The site component of the URI 'http://user:pass@www.example.com:1234/path?query=true#fragment'
+     * is 'http://user:pass@www.example.com:1234'
+     * 
+     * @return
+     */
     public String site() {
         String authority = authority();
         String scheme = scheme();
@@ -342,22 +342,23 @@ public class URI {
         builder.append(query != null ? "?" + query : "");
         builder.append(fragment != null ? "#" + fragment : "");
         
-        String uri = builder.toString();
-        // TODO remove this check, it's redundant
-        Matcher matcher = URIPattern.matcher(uri);
-        if (!matcher.find() || uri.isEmpty()) {
-            throw new URISyntaxException(uri, "URI representation is not valid!"); 
-        }
+        String uri = SimpleIDN.toASCII(builder.toString());
         return uri;
     }
     
-    public String normalizeHost() {
-        // TODO
-        return host;
-    }
-    
-    public String normalizeQuery() {
-        return query();
+    private void parseAuthority(String authority) throws URISyntaxException {
+        if (authority != null) {
+            Matcher matcher = AuthorityPattern.matcher(authority);
+            if (!matcher.matches()) {
+                throw new URISyntaxException(authority, "No valid authority given");
+            }
+            String userinfo = matcher.group(1);
+            String host     = matcher.group(2);
+            String port     = matcher.group(3);
+            withUserInfo(userinfo);
+            withHost(host);
+            withPort(port);
+        }
     }
     
     private void parseScheme(String scheme) throws URISyntaxException {
@@ -391,7 +392,8 @@ public class URI {
             return;
         }
         if (NamedHostPattern.matcher(host).matches()) {
-            this.host = URIUtils.normalize(URIUtils.normalizeString(host, false), URIUtils.REGNAME);
+            String ascii = IDN.toASCII(host);
+            this.host = URIUtils.normalize(URIUtils.normalizeString(ascii, false), URIUtils.REGNAME);
         } else if (IPV6HostPattern.matcher(host).matches()) {
             this.host = host;
         } else if (IPFuturePattern.matcher(host).matches()) {
@@ -406,16 +408,20 @@ public class URI {
             return;
         
         if (!port.isEmpty()) {
-            int portNumber = Integer.valueOf(port);
-            if (portNumber < 1 || portNumber > 65535) {
-                throw new URISyntaxException(port, "Invalid port number");
+            try {
+                int portNumber = Integer.valueOf(port);
+                if (portNumber < 1 || portNumber > 65535) {
+                    throw new URISyntaxException(port, "Invalid port number");
+                }
+                this.port = portNumber;
+            } catch (Exception e) {
+                throw new URISyntaxException(port, "Failed to parse port correctly");
             }
-            this.port = portNumber;
         }
     }
     
     private void parsePath(String path) throws URISyntaxException {
-        if (path != null) {
+        if (path != null && !path.isEmpty()) {
             this.path = (host != null && !path.startsWith("/")) ? "/" + path : path;
             this.path = URIUtils.normalizeString(this.path, true);
             this.path = URIUtils.removeDotSegments(this.path);
