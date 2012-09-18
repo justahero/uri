@@ -96,5 +96,18 @@ public class URIQueryTest {
         URIAssert.equals("auth%5Bsignature%5D=12345678&auth%5Btime%5D=4444&terminal=true", uri.query());
         URIAssert.equals("http://www.example.com/foo/bar?auth%5Bsignature%5D=12345678&auth%5Btime%5D=4444&terminal=true", uri.toASCII());
     }
+    
+    @Test
+    public void shouldParseURIWithDifferentQuerySeparator() throws URISyntaxException {
+        URI uri = URI.parse("http://www.example.com/path?auth=3333;test=foo");
+        uri.queryDelimiter(';');
+        Assert.assertEquals(2, uri.queries().size());
+    }
+    
+    @Test
+    public void shouldConstructURIWithDifferentQuerySeparator() throws URISyntaxException {
+        URI uri = new URI().withScheme("http").withHost("example.com").addParam("foo", "temp").addParam("page", "1");
+        uri.queryDelimiter(';');
+    }
 }
 
