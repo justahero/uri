@@ -18,14 +18,9 @@ public class URIHostTest {
         URI.parse("http://www.foo[bar].com");
     }
     
-    @Test(expected=URISyntaxException.class)
-    public void shouldNotParseNamedHostWithComparisonOperators() throws URISyntaxException {
-        URI.parse("http://www.<test>.com");
-    }
-    
     @Test
-    public void namedHostWithInvalidFormat() throws URISyntaxException {
-        URIAssert.exception("http://<test>");
+    public void shouldParseNamedHostWithComparisonOperators() throws URISyntaxException {
+        URIAssert.equals("http://www.%3Ctest%3E.com", URI.parse("http://www.<test>.com").toASCII());
     }
     
     @Test
@@ -137,5 +132,11 @@ public class URIHostTest {
     @Test(expected=URISyntaxException.class)
     public void shouldNotParseInvalidIPFutureURI() throws URISyntaxException {
         URI.parse("http://[v0.<invalid>]/");
+    }
+    
+    @Test
+    public void shouldConstructURIAndReassignHostname() throws URISyntaxException {
+        URI uri = new URI().withHost("www.example.com").withHost(null);
+        Assert.assertNull(uri.host());
     }
 }
