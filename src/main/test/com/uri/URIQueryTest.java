@@ -10,7 +10,7 @@ public class URIQueryTest {
     @Test
     public void shouldParesURIWithEmptyQuery() throws URISyntaxException {
         URI uri = URI.parse("http://www.example.com?");
-        Assert.assertNull(uri.query());
+        URIAssert.equals("", uri.query());
     }
     
     @Test

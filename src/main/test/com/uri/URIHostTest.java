@@ -14,7 +14,7 @@ public class URIHostTest {
     }
     
     @Test(expected=URISyntaxException.class)
-    public void shouldNotParseNamedHostWithSquareBrackets() throws URISyntaxException {
+    public void shouldFailToParseNamedHostWithSquareBrackets() throws URISyntaxException {
         URI.parse("http://www.foo[bar].com");
     }
     
@@ -58,22 +58,22 @@ public class URIHostTest {
     }
 
     @Test(expected=URISyntaxException.class)
-    public void portContainsInvalidCharacter() throws URISyntaxException {
+    public void shouldFailToParsePortWithInvalidCharacter() throws URISyntaxException {
         URI.parse("http://www.example.com:9a");
     }
     
     @Test(expected=URISyntaxException.class)
-    public void shouldNotParseURIWithPortAboveLimit() throws URISyntaxException {
+    public void shouldFailToParsePortAboveLimit() throws URISyntaxException {
         URI.parse("http://www.test.de:123456");
     }
     
     @Test(expected=URISyntaxException.class)
-    public void shouldNotParseURIWithZeroPort() throws URISyntaxException {
+    public void shouldFailToParsePortWithZeroValue() throws URISyntaxException {
         URI.parse("http://example.com:0");
     }
     
     @Test(expected=URISyntaxException.class)
-    public void shouldNotParseURIWithNegativePort() throws URISyntaxException {
+    public void shouldFailToParseURIWithNegativePort() throws URISyntaxException {
         URI.parse("http://www.example.com:-10");
     }
     
@@ -118,7 +118,7 @@ public class URIHostTest {
     }
     
     @Test(expected=URISyntaxException.class)
-    public void shouldNotParseInvalidIPV6URI() throws URISyntaxException {
+    public void shouldFailToParseInvalidIPV6URI() throws URISyntaxException {
         URI.parse("http://[<invalid>]");
     }
     
@@ -138,7 +138,7 @@ public class URIHostTest {
     }
     
     @Test(expected=URISyntaxException.class)
-    public void shouldNotParseInvalidIPFutureURI() throws URISyntaxException {
+    public void shouldFailToParseInvalidIPFutureURI() throws URISyntaxException {
         URI.parse("http://[v0.<invalid>]/");
     }
     
