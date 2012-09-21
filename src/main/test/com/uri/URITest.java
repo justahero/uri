@@ -14,11 +14,11 @@ public class URITest {
         Assert.assertEquals(null, uri.host());
         Assert.assertEquals(-1,   uri.port());
         Assert.assertEquals(null, uri.path());
-        Assert.assertEquals(null, uri.query());
         Assert.assertEquals(null, uri.fragment());
         
         URIAssert.equals("", uri.userinfo());
         URIAssert.equals("", uri.authority());
+        URIAssert.equals("", uri.query());
         URIAssert.equals("", uri.requestURI());
     }
     
@@ -68,7 +68,7 @@ public class URITest {
     }
     
     @Test(expected=URISyntaxException.class)
-    public void shouldNotConstructFtpURIWithRequestURI() throws URISyntaxException {
+    public void shouldFailToConstructFtpURIWithRequestURI() throws URISyntaxException {
         URI uri = new URI().withScheme("ftp").withHost("example.com");
         uri.withRequestURI("test?foo=bar");
     }
@@ -443,7 +443,7 @@ public class URITest {
     public void shouldValidateEmptyRequestURIAfterParsingURI() throws URISyntaxException {
         URI uri = URI.parse("http://www.example.com");
         Assert.assertNull(uri.path());
-        Assert.assertNull(uri.query());
+        URIAssert.equals("", uri.query());
         URIAssert.equals("", uri.requestURI());
     }
     

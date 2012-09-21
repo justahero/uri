@@ -237,7 +237,7 @@ public class URI {
         for (NameValuePair pair : queries) {
             result.add(pair.toString());
         }
-        return queries.isEmpty() ? null : URIUtils.join(result, Character.toString(delimiter));
+        return queries.isEmpty() ? "" : URIUtils.join(result, Character.toString(delimiter));
     }
     
     public List<NameValuePair> queries() {
@@ -257,7 +257,7 @@ public class URI {
         String query = query();
         StringBuilder builder = new StringBuilder();
         builder.append(path != null ? path : "");
-        builder.append(query != null ? "?" + query : "");
+        builder.append(!query.isEmpty() ? "?" + query : "");
         return builder.toString();
     }
     
@@ -288,8 +288,8 @@ public class URI {
      * @return
      */
     public String site() {
-        String authority = authority();
         String scheme = scheme();
+        String authority = authority();
         
         StringBuilder builder = new StringBuilder();
         builder.append(scheme != null ? scheme + ":" : "");
@@ -301,6 +301,14 @@ public class URI {
         return (builder.length() > 0) ? builder.toString() : null;
     }
     
+    /**
+     * Sets the request URI component consisting of path and query parameters, e.g.
+     * 'path/to/resource?q=all&search=foo'
+     * 
+     * @param request
+     * @return
+     * @throws URISyntaxException
+     */
     public URI withRequestURI(String request) throws URISyntaxException {
         path = null;
         queries.clear();
@@ -322,7 +330,109 @@ public class URI {
     public boolean isRelative() {
         return (scheme == null);
     }
+    
+    /**
+     * 
+     * 
+     * @param uri
+     * @return
+     * @throws URISyntaxException
+     */
+    public URI join(String uri) throws URISyntaxException {
+        return join(URI.parse(uri));
+    }
 
+    /**
+     * Joins the URI with another one, useful for Reference resolution, e.g. specifying a relative URI
+     * to a different one, acting as Base URI.
+     * 
+     * A relative path can only be joined when a base URI is known. A base URI must conform to the
+     * absolute URI syntax (see section 4.3 of RFC 3986). A base URI is an absolute URI with scheme,
+     * authority. How a base URI can be obtained of a reference is described in section 5 of RFC 3986.
+     * 
+     * The algorithm used is taken from section 5.2.2
+     * 
+     * @param relativePath
+     * @return
+     * @throws URISyntaxException
+     */
+    public URI join(URI uri) throws URISyntaxException {
+        String targetScheme    = null;
+        String targetAuthority = null;
+        String targetPath      = null;
+        String targetQuery     = null;
+        String targetFragment  = null;
+        
+        if (uri.scheme != null) {
+            targetScheme    = uri.scheme;
+            targetAuthority = uri.authority();
+            targetPath      = uri.path;
+            targetQuery     = uri.query();
+        } else {
+            if (!uri.authority().isEmpty()) {
+                targetAuthority = uri.authority();
+                targetPath      = uri.path;
+                targetQuery     = uri.query();
+            } else {
+                if (uri.path == null || uri.path.isEmpty()) {
+                    targetPath = this.path;
+                    if (!uri.query().isEmpty()) {
+                        targetQuery = uri.query();
+                    } else {
+                        targetQuery = this.query();
+                    }
+                } else {
+                    if (uri.path.startsWith("/")) {
+                        targetPath = uri.path;
+                    } else {
+                        targetPath = mergePath(this, uri);
+                    }
+                    targetQuery = uri.query();
+                }
+                targetAuthority = this.authority();
+            }
+            targetScheme = this.scheme;
+        }
+        targetFragment = uri.fragment;
+        
+        URI targetURI = new URI()
+            .withScheme(targetScheme)
+            .withAuthority(targetAuthority)
+            .withPath(targetPath)
+            .withQuery(targetQuery)
+            .withFragment(targetFragment);
+        return targetURI;
+    }
+    
+    /**
+     * See section 5.2.3 of RFC 3986 for more details
+     * 
+     * @param basePath
+     * @param relativePath
+     * @return
+     */
+    private static String mergePath(URI baseURI, URI referenceURI) {
+        String basePath = (baseURI.path == null || baseURI.path.isEmpty()) ? "" : baseURI.path;
+        
+        if (!baseURI.authority().isEmpty() && basePath.isEmpty()) {
+            basePath = "/";
+        } else {
+            // remove the rightmost path segment from the base path (if available)
+            int index = basePath.lastIndexOf('/');
+            if (index != -1) {
+                basePath = basePath.substring(0, index + 1);
+            } else {
+                basePath = "";
+            }
+        }
+        
+        if (referenceURI.path != null) {
+            basePath += referenceURI.path;
+        }
+        
+        return basePath;
+    }
+    
     public String toASCII() throws URISyntaxException {
         String authority = authority();
         String path = path();
@@ -351,7 +461,7 @@ public class URI {
         StringBuilder builder = new StringBuilder();
         builder.append(site != null ? site : "");
         builder.append(path != null ? path : "");
-        builder.append(query != null ? "?" + query : "");
+        builder.append(!query.isEmpty() ? "?" + query : "");
         builder.append(fragment != null ? "#" + fragment : "");
         
         String uri = SimpleIDN.toASCII(builder.toString());

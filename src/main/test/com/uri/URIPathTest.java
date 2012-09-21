@@ -74,7 +74,7 @@ public class URIPathTest {
     }
     
     @Test(expected=URISyntaxException.class)
-    public void shouldNotParseAbsolutePathWithBeginningDoubleSlashes() throws URISyntaxException {
+    public void shouldFailToParseAbsolutePathWithBeginningDoubleSlashes() throws URISyntaxException {
         URI.parse("http:////test/foo").toASCII();
     }
     
@@ -92,6 +92,19 @@ public class URIPathTest {
         URIAssert.equals("/relative/path/to/file", uri.path());
         URIAssert.equals("/relative/path/to/file", uri.toASCII());
     }
+    /*
+    @Test(expected=URISyntaxException.class)
+    public void shouldFailToAssignRelativePathToAbsoluteURI() throws URISyntaxException {
+        URI uri = new URI().withScheme("http").withHost("example.com").withPath("acct:foo@test.com");
+        uri.toASCII();
+    }
+    
+    @Test(expected=URISyntaxException.class)
+    public void shouldFailToAssignRelativePathToAbsoluteURI2() throws URISyntaxException {
+        URI uri = new URI().withScheme("urn").withPath("uuid:0b3ecf60-3f93-11df-a9c3-001f5bfffe12");
+        uri.toASCII();
+    }
+    */
     
     @Test
     public void shouldConstructURIWithRelativePath() throws URISyntaxException {
@@ -138,7 +151,7 @@ public class URIPathTest {
     }
     
     @Test(expected=URISyntaxException.class)
-    public void shouldNotParseRelativePathWithMisformedPercentOctet() throws URISyntaxException {
+    public void shouldFailToParseRelativePathWithMisformedPercentOctet() throws URISyntaxException {
         new URI().withPath("/foo/%gg/").toASCII();
     }
     
@@ -225,6 +238,56 @@ public class URIPathTest {
         URIAssert.equals("http://a.c/test", URI.parse("http://a.c/../../test").toASCII());
         URIAssert.equals("http://a.c/foo/test", URI.parse("http://a.c/../../../foo/test").toASCII());
     }
+    
+    //
+    // Relative path related, see section 5.2 of RFC 3986
+    //
+    
+    @Test
+    public void shouldJoinEmptyStringWithURI() throws URISyntaxException {
+        URI uri = URI.parse("http://example.com/path");
+        URIAssert.equals("http://example.com/path", uri.join("").toASCII());
+    }
+    
+    @Test
+    public void shouldJoinWithRelativePathString() throws URISyntaxException {
+        URI uri = URI.parse("http://example.com");
+        URIAssert.equals("http://example.com/relative/path", uri.join("relative/path").toASCII());
+    }
+    
+    @Test
+    public void shouldJoinURIWithRelativePath() throws URISyntaxException {
+        URI uri = URI.parse("http://example.com");
+        URI relativeURI = URI.parse("relative/path");
+        URIAssert.equals("http://example.com/relative/path", uri.join(relativeURI).toASCII());
+    }
+    
+    @Test
+    public void shouldJoinRelativePathWithAnotherOne() throws URISyntaxException {
+        URI uri = URI.parse("relative/path/to");
+        URIAssert.equals("relative/path/another/relative/path", uri.join("another/relative/path").toASCII());
+    }
+    
+    @Test
+    public void shouldJoinRelativePathWithAnotherRelativeURI() throws URISyntaxException {
+        URI uri = URI.parse("relative/path/to");
+        URI relativeURI = URI.parse("another/relative/path");
+        URIAssert.equals("relative/path/another/relative/path", uri.join(relativeURI).toASCII());
+    }
+    
+    @Test
+    public void shouldJoinPathWithoutSlashesWithAnotherPath() throws URISyntaxException {
+        URI uri = URI.parse("path_with_no_slashes");
+        URIAssert.equals("foo_bar_path", uri.join("foo_bar_path").toASCII());
+    }
+    
+    @Test
+    public void shouldJoinPathWithTrailingSlashWithAnotherPath() throws URISyntaxException {
+        URI uri = URI.parse("path_with_trailing_slash/");
+        URI relativeURI = URI.parse("another_path");
+        URIAssert.equals("path_with_trailing_slash/another_path", uri.join(relativeURI).toASCII());
+    }
+    
 }
 
 
