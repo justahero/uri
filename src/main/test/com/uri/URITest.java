@@ -167,6 +167,21 @@ public class URITest {
     }
     
     @Test
+    public void shouldConstructURIAndReassignPort() throws URISyntaxException {
+        URI uri = new URI().withScheme("http").withHost("example.com").withPort(444);
+        uri.withPort(-1);
+        URIAssert.equals("http://example.com", uri.toASCII());
+    }
+    
+    @Test
+    public void shouldConstructURIAndReassignAuthorityContainingDefaultPort() throws URISyntaxException {
+        URI uri = new URI().withScheme("http").withAuthority("example.com:100");
+        uri.withAuthority("example.com"); // resets to 80
+        Assert.assertEquals(-1, uri.port());
+        URIAssert.equals("http://example.com", uri.toASCII());
+    }
+    
+    @Test
     public void shouldConstructWithSchemeAndHost() throws URISyntaxException {
         URI uri = new URI().withScheme("http").withHost("example.com");
         URIAssert.equals("http://example.com", uri.toASCII());

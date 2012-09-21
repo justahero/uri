@@ -192,14 +192,22 @@ public class URI {
     }
     
     public URI withPort(int port) throws URISyntaxException {
-        parsePort(Integer.toString(port));
+        this.port = -1;
+        parsePort(port);
         return this;
     }
     
     private URI withPort(String port) throws URISyntaxException {
         this.port = -1;
-        parsePort(port);
-        return this;
+        if (!isDefined(port))
+            return this;
+        
+        try {
+            int portNumber = Integer.parseInt(port);
+            return withPort(portNumber);
+        } catch (NumberFormatException e) {
+            throw new URISyntaxException(port, "Invalid port specified");
+        }
     }
     
     public URI withPath(String path) throws URISyntaxException {
@@ -599,21 +607,14 @@ public class URI {
         }
     }
     
-    private void parsePort(String port) throws URISyntaxException {
-        if (port == null)
+    private void parsePort(int port) throws URISyntaxException {
+        if (port == -1)
             return;
         
-        if (!port.isEmpty()) {
-            try {
-                int portNumber = Integer.valueOf(port);
-                if (portNumber < 1 || portNumber > 65535) {
-                    throw new URISyntaxException(port, "Invalid port number");
-                }
-                this.port = portNumber;
-            } catch (Exception e) {
-                throw new URISyntaxException(port, "Failed to parse port correctly");
-            }
+        if (port < 1 || port > 65535) {
+            throw new URISyntaxException(String.valueOf(port), "Invalid port number");
         }
+        this.port = port;
     }
     
     private void parsePath(String path) throws URISyntaxException {
