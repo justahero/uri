@@ -86,10 +86,27 @@ public class URI {
         IPV6HostPattern  = Pattern.compile(RegExIPV6Host);
         IPFuturePattern  = Pattern.compile(RegExIPFuture);
         
-        DefaultPortMap.put("ftp",   21);
-        DefaultPortMap.put("http",  80);
-        DefaultPortMap.put("https", 443);
-        DefaultPortMap.put("ldap",  389);
+        DefaultPortMap.put("acap",     674);
+        DefaultPortMap.put("dict",     2628);
+        DefaultPortMap.put("ftp",      21);
+        DefaultPortMap.put("go",       1096);
+        DefaultPortMap.put("gopher",   70);
+        DefaultPortMap.put("http",     80);
+        DefaultPortMap.put("https",    443);
+        DefaultPortMap.put("icap",     1344);
+        DefaultPortMap.put("ldap",     389);
+        DefaultPortMap.put("mupdate",  3905);
+        DefaultPortMap.put("nntp",     119);
+        DefaultPortMap.put("nntps",    563);
+        DefaultPortMap.put("prospero", 1525);
+        DefaultPortMap.put("rsync",    873);
+        DefaultPortMap.put("rtsp",     554);
+        DefaultPortMap.put("snmp",     161);
+        DefaultPortMap.put("telnet",   23);
+        DefaultPortMap.put("vemmi",    575);
+        DefaultPortMap.put("wais",     210);
+        DefaultPortMap.put("ws",       80);
+        DefaultPortMap.put("wss",      443);
     }
     
     public URI() {

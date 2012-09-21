@@ -16,7 +16,8 @@ Motivation
 A few reasons for writing this library
 
 * URI Class of Java 6 only conforms to [RFC 2396](http://www.ietf.org/rfc/rfc2396.txt) (Uniform Resource 
-Identifies: Generic Syntax). it is superseded by [RFC 3986](http://www.ietf.org/rfc/rfc3986.txt)
+Identifies: Generic Syntax). it is superseded by [RFC 3986](http://www.ietf.org/rfc/rfc3986.txt), for example
+IPv6 and IPFuture are not part of RFC 2396
 * URLEncoder Class of Java 6 is not applicable for URIs, e.g. instead of `+` sign a space character
 should be `%20`
 * URI & URL have constructors with a lot of parameters but feel a bit unusable,
