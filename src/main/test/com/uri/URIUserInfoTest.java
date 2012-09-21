@@ -15,12 +15,12 @@ public class URIUserInfoTest {
     }
     
     @Test(expected=URISyntaxException.class)
-    public void shouldNotParseUserInfoWithSquareBrackets() throws URISyntaxException {
+    public void shouldFailToParseUserInfoWithSquareBrackets() throws URISyntaxException {
         URI.parse("http://te[]st:bla@example.com");
     }
     
     @Test(expected=URISyntaxException.class)
-    public void shouldNotParseUserInfoWithComparisonOperators() throws URISyntaxException {
+    public void shouldFailToParseUserInfoWithComparisonOperators() throws URISyntaxException {
         URI.parse("http://<tes>t:foo@example.com");
     }
     
@@ -46,7 +46,7 @@ public class URIUserInfoTest {
     }
     
     @Test(expected=URISyntaxException.class)
-    public void shouldNotParseWithOnlyUserpass() throws URISyntaxException {
+    public void shouldFailToParseWithOnlyUserpass() throws URISyntaxException {
         URI.parse("http://:pass@example.com").toASCII();
     }
     
@@ -60,17 +60,17 @@ public class URIUserInfoTest {
     }
     
     @Test(expected=URISyntaxException.class)
-    public void shouldNotParseThreePartsUserInfo() throws URISyntaxException {
+    public void shouldFailToParseThreePartsUserInfo() throws URISyntaxException {
         URI.parse("http://test:double:pass@example.com");
     }
     
     @Test(expected=URISyntaxException.class)
-    public void shouldNotParseUserInfoWithTrailingExtraColon() throws URISyntaxException {
+    public void shouldFailToParseUserInfoWithTrailingExtraColon() throws URISyntaxException {
         URI.parse("http://test:bar:@example.com");
     }
     
     @Test(expected=URISyntaxException.class)
-    public void shouldNotParseUserInfoWithLreadingExtraColon() throws URISyntaxException {
+    public void shouldFailToParseUserInfoWithLreadingExtraColon() throws URISyntaxException {
         URI.parse("http://:bar:fault@example.com");
     }
     

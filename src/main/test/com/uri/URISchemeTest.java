@@ -13,27 +13,27 @@ public class URISchemeTest {
     //
     
     @Test(expected=URISyntaxException.class)
-    public void shouldNotStartWithPlusCharacter() throws URISyntaxException {
+    public void shouldFailToParseSchemeWithPlusCharacter() throws URISyntaxException {
         URI.parse("+http://example.com");
     }
     
     @Test(expected=URISyntaxException.class)
-    public void shouldNotStartWithDashCharacter() throws URISyntaxException {
+    public void shouldFailToParseSchemeWithDashCharacter() throws URISyntaxException {
         URI.parse("-http://example.com");
     }
     
     @Test(expected=URISyntaxException.class)
-    public void shouldNotStartWithDotCharacter() throws URISyntaxException {
+    public void shouldFailToParseSchemeWithDotCharacter() throws URISyntaxException {
         URI.parse(".http://example.com");
     }
     
     @Test(expected=URISyntaxException.class)
-    public void shouldNotStartWithDigit() throws URISyntaxException {
+    public void shoulFailToParseSchemeWithLeadingDigit() throws URISyntaxException {
         URI.parse("4http://www.test.com");
     }
     
     @Test(expected=URISyntaxException.class)
-    public void shouldNotContainInvalidCharacters() throws URISyntaxException {
+    public void shoulFailToParseSchemeWithInvalidCharacters() throws URISyntaxException {
         URI.parse("ft<>p://example.com");
     }
     
@@ -44,7 +44,7 @@ public class URISchemeTest {
     }
     
     @Test(expected=URISyntaxException.class)
-    public void shouldMustContainHierarchicalComponent() throws URISyntaxException {
+    public void shouldFailToConstructURIWithoutHierarchicalComponent() throws URISyntaxException {
         new URI().withScheme("ftp").toASCII();
     }
     
