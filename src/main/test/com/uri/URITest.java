@@ -94,6 +94,18 @@ public class URITest {
         URIAssert.equals("http://www.example.com#fragment", uri.toASCII());
     }
     
+    @Test(expected=URISyntaxException.class)
+    public void shouldFailToParseRequestURIContainingFragment() throws URISyntaxException {
+        URI.parse("http://example.com").withRequestURI("path/to/resource?key=value#fragment");
+    }
+    
+    /*
+    @Test(expected=URISyntaxException.class)
+    public void shouldFailToParseRequestURIWithFullURI() throws URISyntaxException {
+        // URI.parse("http://example.com").withRequestURI("http://test.com/path");
+    }
+    */
+    
     @Test
     public void shouldConstructHostContainingReservedCharacters() throws URISyntaxException {
         URIAssert.equals("%3Chostname%3E", new URI().withHost("<hostname>").host());
@@ -596,4 +608,7 @@ public class URITest {
         uri.withHost("abcdef.com");
         URIAssert.equals("http://foo:bar@abcdef.com", uri.toASCII());
     }
+    
 }
+
+
