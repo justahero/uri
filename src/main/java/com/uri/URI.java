@@ -35,8 +35,7 @@ public class URI {
     private final static String RegExIPFuture  = "(?:\\[v["+HEX+".]+["+COMMON+":]+\\])";
     private final static String RegExHost      = "("+RegExNamedHost+"|"+RegExIPV6Host+"|"+RegExIPFuture+")?";
     
-    private final static String RegExQuery     = "(?:\\?(["+COMMON+":@/?\\[\\]%]*))";
-    private final static String RegExRequestURI = "(/?["+COMMON+":@]+(?:/["+COMMON+":@]+)*/?)?"+RegExQuery+"?";
+    private final static String RegExRequestURI = "(?:([^?#]*))?(?:\\?([^#]*))?";
     
     private final static String RegExAuthority =
           "\\A^" +
@@ -109,7 +108,56 @@ public class URI {
         DefaultPortMap.put("wss",      443);
     }
     
+    private static boolean isDefined(String input) {
+        return (input != null && !input.isEmpty());
+    }
+    
     public URI() {
+    }
+    
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        } else if (!(obj instanceof String || obj instanceof URI)) {
+            return false;
+        }
+        
+        // get URI from Object
+        URI uri = null;
+        if (obj instanceof String) {
+            try {
+                uri = URI.parse((String)obj);
+            } catch (URISyntaxException e) {
+                return false;
+            }
+        } else {
+            uri = (URI)obj;
+        }
+        
+        return toString().equals(uri.toString());
+    }
+    
+    public int hashCode() {
+        return toString().hashCode();
+    }
+    
+    public String toString() {
+        try {
+            return toASCII();
+        } catch (URISyntaxException e) {
+        }
+        
+        StringBuffer builder = new StringBuffer();
+        String site      = site();
+        String path      = path();
+        String query     = query();
+        String fragment  = fragment();
+        
+        builder.append(isDefined(site) ? site : "");
+        builder.append(isDefined(path) ? path : "");
+        builder.append(isDefined(query) ? "?" + query : "");
+        builder.append(isDefined(fragment) ? "#" + fragment : "");
+        return SimpleIDN.toASCII(builder.toString());
     }
     
     public URI withAuthority(String authority) throws URISyntaxException {
@@ -310,7 +358,7 @@ public class URI {
         
         StringBuilder builder = new StringBuilder();
         builder.append(scheme != null ? scheme + ":" : "");
-        if (scheme != null && !authority.isEmpty()) {
+        if (isDefined(scheme) && isDefined(authority)) {
             builder.append("//");
         }
         builder.append(authority);
@@ -349,7 +397,7 @@ public class URI {
     }
     
     /**
-     * 
+     * For more details see {@link #join(URI)}
      * 
      * @param uri
      * @return
@@ -358,7 +406,7 @@ public class URI {
     public URI join(String uri) throws URISyntaxException {
         return join(URI.parse(uri));
     }
-
+    
     /**
      * Joins the URI with another one, useful for Reference resolution, e.g. specifying a relative URI
      * to a different one, acting as Base URI.
@@ -450,11 +498,20 @@ public class URI {
         return basePath;
     }
     
+    /**
+     * Returns an ASCII compatible representation of the string (only using characters from with values 0x0 - 0x7f)
+     * This is the most common way to retrieve a representation of the URI, useful in situations where it
+     * is mandatory only to use ASCII characters. This method might not be useful when displaying the string
+     * in a User Interface.
+     * 
+     * @return A representation of the URI that only uses ASCII characters (in the range of 0 - 127)
+     * @throws URISyntaxException
+     */
     public String toASCII() throws URISyntaxException {
-        String authority = authority();
-        String path = path();
-        String site = site();
-        String query = query();
+        String site      = site();
+        String path      = path();
+        String query     = query();
+        String fragment  = fragment();
         
         if (username == null && userpass != null) {
             throw new URISyntaxException(userinfo(), "Userpass given but no username");
@@ -468,21 +525,21 @@ public class URI {
             }
         }
         
-        if (authority.isEmpty() && path == null) {
+        String authority = authority();
+        if (!isDefined(authority) && !isDefined(path)) {
             throw new URISyntaxException("", "URI is missing authority or path!");
         }
-        if (authority.length() > 0 && scheme == null) {
+        if (isDefined(authority) && !isDefined(scheme)) {
             throw new URISyntaxException("", "Authority given but no scheme found!");
         }
         
         StringBuilder builder = new StringBuilder();
-        builder.append(site != null ? site : "");
-        builder.append(path != null ? path : "");
-        builder.append(!query.isEmpty() ? "?" + query : "");
-        builder.append(fragment != null ? "#" + fragment : "");
+        builder.append(isDefined(site) ? site : "");
+        builder.append(isDefined(path) ? path : "");
+        builder.append(isDefined(query) ? "?" + query : "");
+        builder.append(isDefined(fragment) ? "#" + fragment : "");
         
-        String uri = SimpleIDN.toASCII(builder.toString());
-        return uri;
+        return SimpleIDN.toASCII(builder.toString());
     }
     
     private void parseAuthority(String authority) throws URISyntaxException {
@@ -610,6 +667,8 @@ public class URI {
             String query = matcher.group(2);
             parsePath(path);
             parseQuery(query);
+        } else {
+            throw new URISyntaxException(request, "Request is not valid");
         }
     }
 
