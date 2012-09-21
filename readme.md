@@ -1,39 +1,19 @@
-URI Parser
-==========
+URI
+===
 
-This Java library offers a way to parse URIs and supports the following RFCs
+This Java library offers an intuitive way to construct and parse URIs. It aims to conform to the following RFCs.
 
 * [RFC 3986](http://www.ietf.org/rfc/rfc3987.txt) Uniform Resource Identifier (URI) Generic Syntax
 * [RFC 3492](http://www.ietf.org/rfc/rfc3492.txt) Punycode, for encoding Internationalized Domain Names in Applications (IDNA)
-
-It offers an easy way to build URIs (with Internationalized Domain Names)
-and allows to parse URI strings and split them into their sub components. 
-
-
-Motivation
-----------
-
-A few reasons for writing this library
-
-* URI Class of Java 6 only conforms to [RFC 2396](http://www.ietf.org/rfc/rfc2396.txt) (Uniform Resource 
-Identifies: Generic Syntax). it is superseded by [RFC 3986](http://www.ietf.org/rfc/rfc3986.txt), for example
-IPv6 and IPFuture are not part of RFC 2396
-* URLEncoder Class of Java 6 is not applicable for URIs, e.g. instead of `+` sign a space character
-should be `%20`
-* URI & URL have constructors with a lot of parameters but feel a bit unusable,
-parameters have to be blank or null to omit them
-* URI classes are available in different packages: `java.net`, `javax.xml.crypto`, `javax.xml.transform`,
-`java.security`, `javax.print.attribute`, `javax.ws.rs.core.UriBuilder` (or at least their class names are a bit confusing)
-
 
 
 Installation
 ------------
 
-For now run [maven](http://maven.apache.org/) from the root folder. Copy the
-resulting jar file (in target folder) to the desired location and reference it in your project.
+For now run [maven](http://maven.apache.org/) from the root folder. Copy the resulting jar file (in target folder) to the desired location and reference it in your project.
 
     mvn package
+
 
 
 Usage
@@ -89,15 +69,21 @@ one of the de facto standard characters of the sub delimiters set in the query c
 
 
 
-Todos
------
 
-There are still a few things to do.
+Motivation
+----------
 
-* Full [RFC 3490](http://www.ietf.org/rfc/rfc3490.txt) implementation
-* Implementation of Template URI, see [RFC 6570](http://www.ietf.org/rfc/rfc6570.txt)
-* Full [RFC 3987](http://www.ietf.org/rfc/rfc3987.txt) compatibility with Internationalized
-Resource Identifier (Long term)
-* Update to [RFC 5891](http://tools.ietf.org/html/rfc5891) for Internationalized 
-Domain Names in Applications (IDNA), Protocol
-* Better documentation of existing functionality
+There are few reasons describing the motivation for writing this library, mainly because ...
+
+* URI handling should be instantly understandable
+* simple construction of URI by only specifying the necessary components, it should not require empty or `null` parameters
+* simple parsing of an URI and access to its sub-components (or often used aggregates, e.g. authority, request URI) should be easy
+* the library aims to conform to [RFC 3986](http://www.ietf.org/rfc/rfc3986.txt) (Uniform Resource Identifier: Generic Syntax) and
+therefore supersedes the implementation of Java API, which conforms to [RFC 2396](http://www.ietf.org/rfc/rfc2396.txt) (Java up to 1.6)
+and [RFC 2732](http://www.ietf.org/rfc/rfc2732.txt) (Java 1.7)
+* the Java URLEncoder class handles some characters differently then specified by RFC 3986
+* Standard Java classes dealing with URI specific aspects are spread across different packages or at least their names are a bit confusing
+* to learn a bit of the power of regular expressions
+* ... it is fun!
+
+
