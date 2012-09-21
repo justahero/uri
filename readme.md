@@ -49,6 +49,17 @@ which results in the URI string `http://www.example.com/test.png`.
 
 
 
+### Parsing a URI
+
+Create a URI simply by parsing a given string.
+
+    URI uri = URI.parse("http://www.example.com")
+
+If the string conforms to the generic URI layout the string is split into its
+sub components.
+
+
+
 #### Queries
 
     URI uri = new URI().withScheme("http").withHost("example.com").withQuery("page=2&per=10");
@@ -67,16 +78,13 @@ It is also possible to sort the query parameters if required.
 
 would result in URI `http://example.com/bar?temp=true&value=12`.
 
+To use a different delimiter character (default is `&`) to separate parameters in a query string, use the
+`queryDelimiter` method and provide a character.
 
+    URI uri = URI.parse("http://example.com/bar?q=test;page=10;per=20").queryDelimiter(';');
 
-### Parsing URI
-
-Create a URI simply by parsing a given string.
-
-    URI uri = URI.parse("http://www.example.com")
-
-If the string conforms to the generic URI layout the string is split into its
-sub components.
+Sorting this URI would result in `http://example.com/bar?page=10;per=20;q=test`. It is advised to use
+one of the de facto standard characters of the sub delimiters set in the query component (e.g. `&` or `;`).
 
 
 
