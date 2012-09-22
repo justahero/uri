@@ -28,7 +28,7 @@ public class URIQueryTest {
     }
     
     @Test
-    public void shouldConstructURIWithReassigningQueryComponent() throws URISyntaxException {
+    public void shouldConstructURIAndReassignQueryComponent() throws URISyntaxException {
         URI uri = new URI().withScheme("http").withHost("example.com").withQuery("test=value");
         uri.withQuery("abc=foobar");
         URIAssert.equals("http://example.com?abc=foobar", uri.toASCII());
@@ -54,7 +54,7 @@ public class URIQueryTest {
     }
     
     @Test
-    public void shouldParseURIAndNotSortWithoutQueryParameter() throws URISyntaxException {
+    public void shouldParseURIAndSortWithoutQueryParameter() throws URISyntaxException {
         URI uri = URI.parse("http://example.com/foo#bar").sortQuery();
         URIAssert.equals("http://example.com/foo#bar", uri.toASCII());
     }
@@ -108,6 +108,18 @@ public class URIQueryTest {
     public void shouldConstructURIWithDifferentQuerySeparator() throws URISyntaxException {
         URI uri = new URI().withScheme("http").withHost("example.com").addParam("foo", "temp").addParam("page", "1");
         uri.queryDelimiter(';');
+        URIAssert.equals("foo=temp;page=1", uri.query());
+        URIAssert.equals("http://example.com?foo=temp;page=1", uri.toASCII());
     }
+    
+    /*
+    @Test
+    public void shouldNormalizeQuerySeparatorInParam() throws URISyntaxException {
+        URI uri = URI.parse("http://example.com").addParam("foo", "temp").addParam(";colon", "2");
+        uri.queryDelimiter(';');
+        URIAssert.equals("foo=temp;;colon=2", uri.query());
+    }
+    */
 }
+
 

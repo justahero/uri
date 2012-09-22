@@ -233,8 +233,8 @@ public class URI {
     
     public void queryDelimiter(char delimiter) {
         if (this.delimiter != delimiter) {
-            String query = query();
             this.delimiter = delimiter;
+            String query = query();
             parseQuery(query);
         } 
     }
