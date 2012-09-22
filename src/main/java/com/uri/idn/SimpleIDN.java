@@ -34,11 +34,21 @@ public class SimpleIDN {
             "|\\xF4[\\x80-\\x8F][\\x80-\\xBF]{2}" +      // plane 16
             ")\\Z/mnx";
     
+    // reg ex used to find all dot characters
     private static final String DOTS_REGEX = "(?:[\\x2E]|[\\x3002]|[\\xFF0E]|[\\xFF61])";
     
     private static final Pattern UTF8_PATTERN       = Pattern.compile(UTF8_REGEX);
     private static final Pattern UTF8_MULTI_PATTERN = Pattern.compile(UTF8_REGEX_MULTIBYTE);
     
+    /**
+     * A basic implementation of the toASCII function as described in section 4.1 of the RFC 3490
+     * (see http://www.ietf.org/rfc/rfc3490.txt for more details)
+     * 
+     * The implementation currently uses the IDN class of Java SE
+     * 
+     * @param label
+     * @return
+     */
     public static String toASCII(final String label) {
         if (isUTF8Label(label)) {
             String[] parts = splitParts(downcase(label));
@@ -55,6 +65,15 @@ public class SimpleIDN {
         return label;
     }
     
+    /**
+     * A basic implementation of the toUnicode function as described in section 4.2 of the RFC 3490
+     * (see http://www.ietf.org/rfc/rfc3490.txt for more details)
+     * 
+     * The implementation currently uses the IDN class of Java SE
+     * 
+     * @param label
+     * @return
+     */
     public static String toUnicode(final String label) {
         try {
             String[] parts = splitParts(label);
@@ -76,6 +95,12 @@ public class SimpleIDN {
         return input.split(DOTS_REGEX);
     }
     
+    /**
+     * Checks if the given input label is an UTF-8 string.
+     * 
+     * @param label
+     * @return
+     */
     private static boolean isUTF8Label(String label) {
         Matcher utf8Matcher = UTF8_PATTERN.matcher(label);
         Matcher utf8MultiMatcher = UTF8_MULTI_PATTERN.matcher(label);

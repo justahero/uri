@@ -13,6 +13,10 @@ import java.util.regex.Pattern;
 
 import com.uri.idn.SimpleIDN;
 
+/**
+ * A class to parse and construct URIs.
+ *
+ */
 public class URI {
     
     private final static Map<String, Integer> DefaultPortMap = new HashMap<String, Integer>();
@@ -30,7 +34,7 @@ public class URI {
     private final static String RegExUserInfo  = "(?:["+COMMON+":]|"+PERCENT+")*";
     private final static String RegExScheme    = "^(["+ALPHA+"]+["+ALPHA+DIGIT+"+-.]*)";
     
-    private final static String RegExNamedHost = "(?:[^\\[\\]:/?#]*|"+PERCENT+")*";
+    private final static String RegExNamedHost = "(?:[^\\[\\]:/?#])*";
     private final static String RegExIPV6Host  = "\\[["+HEX+":.]+\\]";
     private final static String RegExIPFuture  = "(?:\\[v["+HEX+".]+["+COMMON+":]+\\])";
     private final static String RegExHost      = "("+RegExNamedHost+"|"+RegExIPV6Host+"|"+RegExIPFuture+")?";
@@ -147,6 +151,7 @@ public class URI {
         } catch (URISyntaxException e) {
         }
         
+        // fallback recomposition, guarantees a valid string, but not necessarily a valid URI representation
         StringBuffer builder = new StringBuffer();
         String site      = site();
         String path      = path();
@@ -436,30 +441,22 @@ public class URI {
         String targetQuery     = null;
         String targetFragment  = null;
         
-        if (uri.scheme != null) {
+        if (isDefined(uri.scheme)) {
             targetScheme    = uri.scheme;
             targetAuthority = uri.authority();
             targetPath      = uri.path;
             targetQuery     = uri.query();
         } else {
-            if (!uri.authority().isEmpty()) {
+            if (isDefined(uri.authority())) {
                 targetAuthority = uri.authority();
                 targetPath      = uri.path;
                 targetQuery     = uri.query();
             } else {
-                if (uri.path == null || uri.path.isEmpty()) {
-                    targetPath = this.path;
-                    if (!uri.query().isEmpty()) {
-                        targetQuery = uri.query();
-                    } else {
-                        targetQuery = this.query();
-                    }
+                if (!isDefined(uri.path)) {
+                    targetPath  = this.path;
+                    targetQuery = isDefined(uri.query()) ? uri.query() : this.query();
                 } else {
-                    if (uri.path.startsWith("/")) {
-                        targetPath = uri.path;
-                    } else {
-                        targetPath = mergePath(this, uri);
-                    }
+                    targetPath = uri.path.startsWith("/") ? uri.path : mergePath(this, uri);
                     targetQuery = uri.query();
                 }
                 targetAuthority = this.authority();
