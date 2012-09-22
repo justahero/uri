@@ -1,0 +1,10 @@
+language: java
+script: mvn clean install
+jdk:
+  - oraclejdk7
+  - openjdk6
+  #- openjdk7
+
+branches:
+  only:
+    - master
