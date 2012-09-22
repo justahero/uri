@@ -1,6 +1,10 @@
 package com.uri.idn;
 
-
+/**
+ * This class offers encode and decode functions to transform a Unicode string to an ASCII string
+ * and vice versa. See appendix C of RFC 3492 (http://www.ietf.org/rfc/rfc3492.txt) for more details
+ *
+ */
 public class Punycode {
     public static final int BASE = 36;
     public static final int TMIN = 1;
@@ -17,7 +21,7 @@ public class Punycode {
     public static final int ACE_MAX_LENGTH = 256;
     
     /**
-     * Applies the Punycode encode algorithm on a given Unicode string and converts it to ASCII string.
+     * Applies the Punycode encode algorithm on a given Unicode string and converts it to a ASCII string.
      * 
      * @param label
      * @return
@@ -93,6 +97,13 @@ public class Punycode {
         return result;
     }
     
+    /**
+     * Applies the Punycode decode algorithm on a given ASCII string and converts it to a Unicode string
+     * 
+     * @param input
+     * @return
+     * @throws PunycodeException
+     */
     public static String decode(String input) throws PunycodeException {
         StringBuffer output = new StringBuffer();
         
@@ -217,7 +228,7 @@ public class Punycode {
     }
     
     /**
-     * Bi)as adaption function
+     * Bias adaption function
      * 
      * @param delta
      * @param numpoints
