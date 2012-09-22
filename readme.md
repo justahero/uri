@@ -1,6 +1,8 @@
 URI
 ===
 
+![Build Status](https://secure.travis-ci.org/justahero/uri.png?branch=master)
+
 This Java library offers an intuitive way to construct and parse URIs. It aims to conform to the following RFCs.
 
 * [RFC 3986](http://www.ietf.org/rfc/rfc3987.txt) Uniform Resource Identifier (URI) Generic Syntax
