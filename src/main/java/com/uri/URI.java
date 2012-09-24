@@ -340,7 +340,7 @@ public class URI {
     }
     
     public String path() {
-        return path;
+        return (host != null && path != null && !path.startsWith("/")) ? "/" + path : path;
     }
     
     public String query() {
@@ -366,6 +366,7 @@ public class URI {
      */
     public String requestURI() {
         String query = query();
+        String path  = path();
         StringBuilder builder = new StringBuilder();
         builder.append(path != null ? path : "");
         builder.append(!query.isEmpty() ? "?" + query : "");
@@ -615,7 +616,7 @@ public class URI {
     
     private void parsePath(String path) throws URISyntaxException {
         if (path != null && !path.isEmpty()) {
-            this.path = (host != null && !path.startsWith("/")) ? "/" + path : path;
+            this.path = path;
             this.path = URIUtils.normalizeString(this.path, true);
             this.path = URIUtils.removeDotSegments(this.path);
         }
