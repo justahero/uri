@@ -28,10 +28,37 @@ public class URIQueryTest {
     }
     
     @Test
+    public void shouldConstructURIAndReassignFragmentToEmptyString() throws URISyntaxException {
+        URI uri = URI.parse("http://example.com/path#fragment");
+        uri.withFragment("");
+        Assert.assertNull(uri.fragment());
+    }
+    
+    @Test
+    public void shouldConstructURIAndReassignFragmentToNull() throws URISyntaxException {
+        URI uri = URI.parse("http://example.com/path#top").withFragment(null);
+        Assert.assertNull(uri.fragment());
+    }
+    
+    @Test
     public void shouldConstructURIAndReassignQueryComponent() throws URISyntaxException {
         URI uri = new URI().withScheme("http").withHost("example.com").withQuery("test=value");
         uri.withQuery("abc=foobar");
         URIAssert.equals("http://example.com?abc=foobar", uri.toASCII());
+    }
+    
+    @Test
+    public void shouldConstructURIAndReassignQueryToEmptyString() throws URISyntaxException {
+        URI uri = URI.parse("http://example.com").withQuery("test=value");
+        uri.withQuery("");
+        URIAssert.equals("http://example.com", uri.toASCII());
+    }
+    
+    @Test
+    public void shouldConstructURIAndReassignQueryToNull() throws URISyntaxException {
+        URI uri = URI.parse("http://example.com").withQuery("test=value");
+        uri.withQuery(null);
+        URIAssert.equals("http://example.com", uri.toASCII());
     }
     
     @Test
