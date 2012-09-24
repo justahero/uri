@@ -11,6 +11,8 @@ import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.uri.idn.SimpleIDN;
+
 /**
  * A class to parse and construct URIs.
  *
@@ -541,7 +543,7 @@ public class URI {
         builder.append(isDefined(path) ? path : "");
         builder.append(isDefined(query) ? "?" + query : "");
         builder.append(isDefined(fragment) ? "#" + fragment : "");
-        return builder.toString();
+        return SimpleIDN.toASCII(builder.toString());
     }
     
     private void parseAuthority(String authority) throws URISyntaxException {
