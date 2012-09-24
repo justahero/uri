@@ -38,6 +38,12 @@ public class URIPathTest {
         URIAssert.equals("", uri.requestURI());
     }
     
+    @Test
+    public void shouldConstructURIWithFirstPathThenHost() throws URISyntaxException {
+        URI uri = new URI().withPath("path/to/resource").withHost("example.com").withScheme("http");
+        URIAssert.equals("http://example.com/path/to/resource", uri.toASCII());
+    }
+    
     //
     // Section 3.3 Path sub component
     //

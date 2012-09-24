@@ -116,6 +116,72 @@ public class URI {
         return (input != null && !input.isEmpty());
     }
     
+    /**
+     * See section 5.2.3 of RFC 3986 for more details
+     * 
+     * @param basePath
+     * @param relativePath
+     * @return
+     */
+    private static String mergePath(URI baseURI, URI referenceURI) {
+        String basePath = (baseURI.path == null || baseURI.path.isEmpty()) ? "" : baseURI.path;
+        
+        if (!baseURI.authority().isEmpty() && basePath.isEmpty()) {
+            basePath = "/";
+        } else {
+            // remove the rightmost path segment from the base path (if available)
+            int index = basePath.lastIndexOf('/');
+            if (index != -1) {
+                basePath = basePath.substring(0, index + 1);
+            } else {
+                basePath = "";
+            }
+        }
+        
+        if (referenceURI.path != null) {
+            basePath += referenceURI.path;
+        }
+        
+        return basePath;
+    }
+    
+    private static String toUserInfo(String username, String userpass) {
+        String userinfo = "";
+        userinfo += (isDefined(username)) ? username : "";
+        userinfo += (isDefined(userpass)) ? ":" + userpass : "";
+        return userinfo;
+    }
+    
+    public static URI parse(String url) throws URISyntaxException {
+        Matcher matcher = URIPattern.matcher(url);
+        if (matcher.find()) {
+            String scheme    = matcher.group(1);
+            String authority = matcher.group(2);
+            String path      = matcher.group(3);
+            String query     = matcher.group(4);
+            String fragment  = matcher.group(5);
+            URI uri = new URI()
+                .withScheme(scheme)
+                .withAuthority(authority)
+                .withPath(path)
+                .withQuery(query)
+                .withFragment(fragment);
+            return uri;
+        }
+        throw new URISyntaxException(url, "Some components could not be parsed!");
+    }
+    
+    public static URI parseURL(URL url) throws URISyntaxException {
+        URI uri = new URI()
+            .withScheme(url.getProtocol())
+            .withUserInfo(url.getUserInfo())
+            .withHost(url.getHost())
+            .withPort(url.getPort())
+            .withPath(url.getPath())
+            .withQuery(url.getQuery());
+        return uri;
+    }
+    
     public URI() {
     }
     
@@ -150,19 +216,7 @@ public class URI {
             return toASCII();
         } catch (URISyntaxException e) {
         }
-        
-        // fallback recomposition, guarantees a valid string, but not necessarily a valid URI representation
-        StringBuffer builder = new StringBuffer();
-        String site      = site();
-        String path      = path();
-        String query     = query();
-        String fragment  = fragment();
-        
-        builder.append(isDefined(site) ? site : "");
-        builder.append(isDefined(path) ? path : "");
-        builder.append(isDefined(query) ? "?" + query : "");
-        builder.append(isDefined(fragment) ? "#" + fragment : "");
-        return SimpleIDN.toASCII(builder.toString());
+        return recompose();
     }
     
     public URI withAuthority(String authority) throws URISyntaxException {
@@ -184,10 +238,7 @@ public class URI {
     }
     
     public URI withUserInfo(String username, String userpass) throws URISyntaxException {
-        String userinfo = "";
-        userinfo += (username != null) ? username : "";
-        userinfo += (userpass != null && !userpass.isEmpty()) ? ":" + userpass : "";
-        return withUserInfo(userinfo.isEmpty() ? null : userinfo);
+        return withUserInfo(toUserInfo(username, userpass));
     }
     
     public URI withScheme(String scheme) throws URISyntaxException {
@@ -221,8 +272,28 @@ public class URI {
         return this;
     }
     
+    public URI withFragment(String fragment) {
+        parseFragment(fragment);
+        return this;
+    }
+    
     public URI withQuery(String query) {
         parseQuery(query);
+        return this;
+    }
+    
+    /**
+     * Sets the request URI component consisting of path and query parameters, e.g.
+     * 'path/to/resource?q=all&search=foo'
+     * 
+     * @param request
+     * @return
+     * @throws URISyntaxException
+     */
+    public URI withRequestURI(String request) throws URISyntaxException {
+        path = null;
+        queries.clear();
+        parseRequestURI(request);
         return this;
     }
     
@@ -244,41 +315,6 @@ public class URI {
         return this;
     }
     
-    public URI withFragment(String fragment) {
-        parseFragment(fragment);
-        return this;
-    }
-    
-    public static URI parse(String url) throws URISyntaxException {
-        Matcher matcher = URIPattern.matcher(url);
-        if (matcher.find()) {
-            String scheme    = matcher.group(1);
-            String authority = matcher.group(2);
-            String path      = matcher.group(3);
-            String query     = matcher.group(4);
-            String fragment  = matcher.group(5);
-            URI uri = new URI()
-                .withScheme(scheme)
-                .withAuthority(authority)
-                .withPath(path)
-                .withQuery(query)
-                .withFragment(fragment);
-            return uri;
-        }
-        throw new URISyntaxException(url, "Some components could not be parsed!");
-    }
-    
-    public static URI parseURL(URL url) throws URISyntaxException {
-        URI uri = new URI()
-            .withScheme(url.getProtocol())
-            .withUserInfo(url.getUserInfo())
-            .withHost(url.getHost())
-            .withPort(url.getPort())
-            .withPath(url.getPath())
-            .withQuery(url.getQuery());
-        return uri;
-    }
-    
     public String scheme() {
         return scheme;
     }
@@ -292,10 +328,7 @@ public class URI {
     }
     
     public String userinfo() {
-        String userinfo = "";
-        userinfo += (username != null) ? username : "";
-        userinfo += (userpass != null && !userpass.isEmpty()) ? ":" + userpass : "";
-        return userinfo;
+        return toUserInfo(username, userpass);
     }
     
     public String host() {
@@ -307,7 +340,7 @@ public class URI {
     }
     
     public String path() {
-        return path;
+        return (host != null && path != null && !path.startsWith("/")) ? "/" + path : path;
     }
     
     public String query() {
@@ -333,6 +366,7 @@ public class URI {
      */
     public String requestURI() {
         String query = query();
+        String path  = path();
         StringBuilder builder = new StringBuilder();
         builder.append(path != null ? path : "");
         builder.append(!query.isEmpty() ? "?" + query : "");
@@ -377,21 +411,6 @@ public class URI {
         builder.append(authority);
         
         return (builder.length() > 0) ? builder.toString() : null;
-    }
-    
-    /**
-     * Sets the request URI component consisting of path and query parameters, e.g.
-     * 'path/to/resource?q=all&search=foo'
-     * 
-     * @param request
-     * @return
-     * @throws URISyntaxException
-     */
-    public URI withRequestURI(String request) throws URISyntaxException {
-        path = null;
-        queries.clear();
-        parseRequestURI(request);
-        return this;
     }
     
     public int inferredPort() {
@@ -475,35 +494,6 @@ public class URI {
     }
     
     /**
-     * See section 5.2.3 of RFC 3986 for more details
-     * 
-     * @param basePath
-     * @param relativePath
-     * @return
-     */
-    private static String mergePath(URI baseURI, URI referenceURI) {
-        String basePath = (baseURI.path == null || baseURI.path.isEmpty()) ? "" : baseURI.path;
-        
-        if (!baseURI.authority().isEmpty() && basePath.isEmpty()) {
-            basePath = "/";
-        } else {
-            // remove the rightmost path segment from the base path (if available)
-            int index = basePath.lastIndexOf('/');
-            if (index != -1) {
-                basePath = basePath.substring(0, index + 1);
-            } else {
-                basePath = "";
-            }
-        }
-        
-        if (referenceURI.path != null) {
-            basePath += referenceURI.path;
-        }
-        
-        return basePath;
-    }
-    
-    /**
      * Returns an ASCII compatible representation of the string (only using characters from with values 0x0 - 0x7f)
      * This is the most common way to retrieve a representation of the URI, useful in situations where it
      * is mandatory only to use ASCII characters. This method might not be useful when displaying the string
@@ -513,10 +503,7 @@ public class URI {
      * @throws URISyntaxException
      */
     public String toASCII() throws URISyntaxException {
-        String site      = site();
-        String path      = path();
-        String query     = query();
-        String fragment  = fragment();
+        String path = path();
         
         if (username == null && userpass != null) {
             throw new URISyntaxException(userinfo(), "Userpass given but no username");
@@ -538,12 +525,25 @@ public class URI {
             throw new URISyntaxException("", "Authority given but no scheme found!");
         }
         
-        StringBuilder builder = new StringBuilder();
+        return recompose();
+    }
+    
+    private String recompose() {
+        StringBuffer builder = new StringBuffer();
+        
+        String site      = site();
+        String path      = path();
+        String query     = query();
+        String fragment  = fragment();
+        
+        if (isDefined(path) && path.compareTo("/") == 0) {
+            path = "";
+        }
+        
         builder.append(isDefined(site) ? site : "");
         builder.append(isDefined(path) ? path : "");
         builder.append(isDefined(query) ? "?" + query : "");
         builder.append(isDefined(fragment) ? "#" + fragment : "");
-        
         return SimpleIDN.toASCII(builder.toString());
     }
     
@@ -616,7 +616,7 @@ public class URI {
     
     private void parsePath(String path) throws URISyntaxException {
         if (path != null && !path.isEmpty()) {
-            this.path = (host != null && !path.startsWith("/")) ? "/" + path : path;
+            this.path = path;
             this.path = URIUtils.normalizeString(this.path, true);
             this.path = URIUtils.removeDotSegments(this.path);
         }

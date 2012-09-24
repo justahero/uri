@@ -1,11 +1,17 @@
 package com.uri;
 
+import java.net.MalformedURLException;
 import java.net.URISyntaxException;
+import java.net.URL;
 
 import org.junit.Assert;
 import org.junit.Test;
 
 public class URITest {
+    
+    //
+    // Construction and Parsing related test methods
+    //
     
     @Test
     public void shouldHaveEmptyPropertiesWhenCreated() {
@@ -99,13 +105,6 @@ public class URITest {
         URI.parse("http://example.com").withRequestURI("path/to/resource?key=value#fragment");
     }
     
-    /*
-    @Test(expected=URISyntaxException.class)
-    public void shouldFailToParseRequestURIWithFullURI() throws URISyntaxException {
-        // URI.parse("http://example.com").withRequestURI("http://test.com/path");
-    }
-    */
-    
     @Test
     public void shouldConstructHostContainingReservedCharacters() throws URISyntaxException {
         URIAssert.equals("%3Chostname%3E", new URI().withHost("<hostname>").host());
@@ -119,6 +118,27 @@ public class URITest {
     @Test(expected=URISyntaxException.class)
     public void shouldFailWhenHostIsAllNumbers() throws URISyntaxException {
         new URI().withScheme("1234");
+    }
+    
+    @Test
+    public void shouldParseJavaURL() throws MalformedURLException, URISyntaxException {
+        URL url = new URL("http://user:info@example.com/path/to/resource?q=search");
+        URI uri = URI.parseURL(url);
+        URIAssert.equals("http://user:info@example.com/path/to/resource?q=search", uri.toASCII());
+        URIAssert.equals("http", uri.scheme());
+        URIAssert.equals("example.com", uri.host());
+        URIAssert.equals("/path/to/resource", uri.path());
+        URIAssert.equals("user:info", uri.userinfo());
+        URIAssert.equals("q=search", uri.query());
+    }
+    
+    @Test
+    public void shouldParseJavaURLIgnoringFragment() throws MalformedURLException, URISyntaxException {
+        // the Java URL class does not return a fragment
+        URL url = new URL("http://example.com/path#fragment");
+        URI uri = URI.parseURL(url);
+        URIAssert.equals("http://example.com/path", uri.toASCII());
+        Assert.assertNull(uri.fragment());
     }
     
     //
