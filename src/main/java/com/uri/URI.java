@@ -273,6 +273,7 @@ public class URI {
     }
     
     public URI withFragment(String fragment) {
+        this.fragment = null;
         parseFragment(fragment);
         return this;
     }
@@ -615,7 +616,7 @@ public class URI {
     }
     
     private void parsePath(String path) throws URISyntaxException {
-        if (path != null && !path.isEmpty()) {
+        if (isDefined(path)) {
             this.path = path;
             this.path = URIUtils.normalizeString(this.path, true);
             this.path = URIUtils.removeDotSegments(this.path);
@@ -648,7 +649,7 @@ public class URI {
     }
     
     private void parseFragment(String fragment) {
-        if (fragment != null) {
+        if (isDefined(fragment)) {
             this.fragment = fragment;
         }
     }
