@@ -102,4 +102,17 @@
       <libFolderName>dep-libs</libFolderName>
     </properties>
 
+    <distributionManagement>
+        <repository>
+            <id>releases</id>
+            <name>URI releases</name>
+            <url>https://github.com/justahero/maven-repository/tree/master/releases</url>
+        </repository>
+        <snapshotRepository>
+            <id>snapshots</id>
+            <name>URI snapshots</name>
+            <url>https://github.com/justahero/maven-repository/tree/master/snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
+
 </project>
