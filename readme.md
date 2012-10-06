@@ -12,10 +12,16 @@ This Java library offers an intuitive way to construct and parse URIs. It aims t
 Installation
 ------------
 
-For now run [maven](http://maven.apache.org/) from the root folder. Copy the resulting jar file (in target folder) to the desired location and reference it in your project.
+If your project uses [maven](http://maven.apache.org/) then setting a dependency in your
+`pom.xml` is the easiest way. See the readme of the [public
+maven repository](https://github.com/justahero/maven-repository) for instructions on
+how to set this library as a dependency.
 
-    mvn package
 
+When a different build system is used (e.g. [ant](http://ant.apache.org/)) then build the library
+manually by running `mvn package` from the root folder and copy the resulting jar file from the `target`
+folder to a good location and reference it in your project. If maven is not available the library
+can be built like any other Java project.
 
 
 Usage
