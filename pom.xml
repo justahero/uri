@@ -106,12 +106,12 @@
         <repository>
             <id>releases</id>
             <name>URI releases</name>
-            <url>https://github.com/justahero/maven-repository/tree/master/releases</url>
+            <url>https://raw.github.com/justahero/maven-repository/master/releases</url>
         </repository>
         <snapshotRepository>
             <id>snapshots</id>
             <name>URI snapshots</name>
-            <url>https://github.com/justahero/maven-repository/tree/master/snapshots</url>
+            <url>https://raw.github.com/justahero/maven-repository/master/snapshots</url>
         </snapshotRepository>
     </distributionManagement>
 
